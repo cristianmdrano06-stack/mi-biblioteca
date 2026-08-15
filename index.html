@@ -109,6 +109,8 @@
     .cover-option img{width:100%;height:100%;object-fit:cover}
     .empty{text-align:center;padding:36px 20px;color:var(--text-muted)}
     .empty i{font-size:36px;margin-bottom:8px;display:block}
+    .mood-opt{display:inline-block;padding:4px 8px;border-radius:14px;font-size:10px;border:1.5px solid var(--border);cursor:pointer;color:var(--text-sec);margin:2px}
+    .mood-opt.selected{background:var(--scarlet);color:#fff;border-color:var(--scarlet)}
     @keyframes completeSpin { 0% { border-color: var(--success); transform: rotate(0deg); } 50% { border-color: var(--gold); } 100% { border-color: var(--success); transform: rotate(360deg); } }
     .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--charcoal);color:#fff;padding:10px 18px;border-radius:10px;font-size:12px;z-index:300;transition:transform .3s}
     [data-theme="dark"] .toast{background:#f9fafb;color:#111827}
@@ -156,7 +158,7 @@
     <button class="nav-btn" data-sec="spending"><i class="fa-solid fa-wallet"></i>Gastos</button>
   </nav>
   <div class="container">
-<div id="sec-reading" class="section active">
+    <div id="sec-reading" class="section active">
       <div class="card" id="currentReadingCard">
         <div class="card-title"><i class="fa-solid fa-book-open-reader"></i> Libro en Curso</div>
         <div id="currentReading">
@@ -274,7 +276,6 @@
         </div>
       </div>
       <div id="calendarView" style="margin-top:8px"></div>
-      <!-- Book Detail Modal -->
       <div id="bookDetailModal" class="modal-overlay">
         <div class="modal" style="padding:16px">
           <div id="bookDetailContent"></div>
@@ -306,7 +307,29 @@
       <div class="chart-card"><div class="chart-card-header"><h3><i class="fa-solid fa-store"></i> Gasto por Tienda</h3></div><div id="chartSpendStore" style="height:260px"></div></div>
     </div>
   </div>
-    <div class="toast" id="toast"></div>
+  <div class="toast" id="toast"></div>
+
+
+  <!-- Book Picker Modal -->
+  <div id="bookPickerModal" class="modal-overlay">
+    <div class="modal" style="padding:16px">
+      <h3 style="text-align:center;margin-bottom:10px"><i class="fa-solid fa-books"></i> ¿Cuál es tu libro?</h3>
+      <div id="bookPickerList"></div>
+      <button class="btn btn-sm btn-outline" id="btnCloseBookPicker" style="margin-top:10px;width:100%"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Format Picker Modal -->
+  <div id="formatPickerModal" class="modal-overlay">
+    <div class="modal" style="padding:16px;text-align:center">
+      <h3 style="margin-bottom:12px"><i class="fa-solid fa-book"></i> ¿Qué formato es?</h3>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn btn-primary" id="btnFmtHard" style="margin-top:0">📕 Tapa dura</button>
+        <button class="btn btn-primary" id="btnFmtSoft" style="margin-top:0;background:linear-gradient(135deg,#b45309,#78350f)">📖 Tapa blanda</button>
+        <button class="btn btn-sm btn-outline" id="btnFmtSkip" style="margin-top:4px">Omitir</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Scanner Modal -->
   <div id="scannerModal" class="modal-overlay">
@@ -345,9 +368,7 @@
       }
       
       function checkAuth() {
-        try {
-          currentUser = localStorage.getItem("biblio_current_user");
-        } catch(e) { currentUser = null; }
+        try { currentUser = localStorage.getItem("biblio_current_user"); } catch(e) { currentUser = null; }
         if (!currentUser) {
           document.getElementById("authOverlay").style.display = "flex";
           document.getElementById("appHeader").style.display = "none";
@@ -360,7 +381,7 @@
         document.getElementById("mainNav").style.display = "";
         document.querySelector(".container").style.display = "";
         var greet = document.getElementById("userGreeting");
-        if (greet && currentUser) greet.textContent = "👋 Hola, " + currentUser;
+        if (greet && currentUser) greet.textContent = "\ud83d\udc4b Hola, " + currentUser;
         return true;
       }
 
@@ -376,7 +397,7 @@
         var pass = document.getElementById("authPass").value;
         if (!user || !pass) { showAuthError("Completa todos los campos"); return; }
         if (!usersDB[user]) { showAuthError("Usuario no encontrado"); return; }
-        if (usersDB[user] !== btoa(pass)) { showAuthError("Contraseña incorrecta"); return; }
+        if (usersDB[user] !== btoa(pass)) { showAuthError("Contrase\u00f1a incorrecta"); return; }
         currentUser = user;
         try { localStorage.setItem("biblio_current_user", user); } catch(e) {}
         loadUserData();
@@ -386,8 +407,8 @@
         var user = document.getElementById("authUser").value.trim().toLowerCase();
         var pass = document.getElementById("authPass").value;
         if (!user || !pass) { showAuthError("Completa todos los campos"); return; }
-        if (user.length < 3) { showAuthError("Usuario mínimo 3 caracteres"); return; }
-        if (pass.length < 4) { showAuthError("Contraseña mínimo 4 caracteres"); return; }
+        if (user.length < 3) { showAuthError("Usuario m\u00ednimo 3 caracteres"); return; }
+        if (pass.length < 4) { showAuthError("Contrase\u00f1a m\u00ednimo 4 caracteres"); return; }
         if (usersDB[user]) { showAuthError("Ese usuario ya existe"); return; }
         usersDB[user] = btoa(pass);
         try { localStorage.setItem("biblio_users", JSON.stringify(usersDB)); } catch(e) {}
@@ -402,50 +423,32 @@
         this.innerHTML = isDark ? '<i class="fa-solid fa-sun"></i> Modo claro' : '<i class="fa-solid fa-moon"></i> Modo oscuro';
       });
 
-
       function loadUserData() {
         var key = currentUser || "default";
-        if (booksCache[key]) {
-          books = booksCache[key];
-        } else {
-          try { books = JSON.parse(localStorage.getItem(getStorageKey()) || "[]"); } catch(e) { books = []; }
-          booksCache[key] = books;
-        }
-        // Show app directly (don't re-read localStorage)
+        if (booksCache[key]) { books = booksCache[key]; }
+        else { try { books = JSON.parse(localStorage.getItem(getStorageKey()) || "[]"); } catch(e) { books = []; } booksCache[key] = books; }
         document.getElementById("authOverlay").style.display = "none";
         document.getElementById("appHeader").style.display = "";
         document.getElementById("mainNav").style.display = "";
         document.querySelector(".container").style.display = "";
         var greet = document.getElementById("userGreeting");
-        if (greet && currentUser) greet.textContent = "👋 Hola, " + currentUser;
-        updateStats();
-        updateDataLists();
-        renderReading();
-        showSection("reading");
+        if (greet && currentUser) greet.textContent = "\ud83d\udc4b Hola, " + currentUser;
+        updateStats(); updateDataLists(); renderReading(); showSection("reading");
+        initCustomGenres();
       }
 
-      // Check if logged in
-      if (!checkAuth()) {
-        // Wait for login
-      }
+      if (!checkAuth()) { /* Wait for login */ }
 
       var books = [];
       try { books = JSON.parse(localStorage.getItem(getStorageKey()) || "[]"); } catch(e) { books = []; }
       booksCache[currentUser || "default"] = books;
       var editingId = null;
       var selectedFormat = "";
-      var activeGenre = "";
-      var activeStatus = "";
+      var selectedGenres = [];
       var selectedCover = "";
 
       var RATES = { USD_HNL: 26.81, EUR_HNL: 29.50, EUR_USD: 1.10 };
-      var genreColors = {
-        "Ficción":"#dc2626","No Ficción":"#b45309","Ciencia Ficción":"#1d4ed8",
-        "Fantasía":"#7c3aed","Romance":"#ec4899","Terror":"#111827",
-        "Misterio":"#4f46e5","Historia":"#78350f","Biografía":"#0891b2",
-        "Autoayuda":"#047857","Técnico":"#475569","Poesía":"#a855f7",
-        "Infantil":"#f59e0b","Cómic/Manga":"#ef4444","Otro":"#6b7280"
-      };
+      var genreColors = {"Ficci\u00f3n":"#dc2626","No Ficci\u00f3n":"#b45309","Ciencia Ficci\u00f3n":"#1d4ed8","Fantas\u00eda":"#7c3aed","Romance":"#ec4899","Terror":"#111827","Misterio":"#4f46e5","Historia":"#78350f","Biograf\u00eda":"#0891b2","Autoayuda":"#047857","T\u00e9cnico":"#475569","Poes\u00eda":"#a855f7","Infantil":"#f59e0b","C\u00f3mic/Manga":"#ef4444","Otro":"#6b7280"};
 
       // === THEME ===
       function toggleTheme() {
@@ -464,13 +467,7 @@
       // === NAVIGATION ===
       var navBtns = document.querySelectorAll(".nav-btn");
       var tabs = ["reading", "add", "library", "dashboard", "spending"];
-      navBtns.forEach(function(btn) {
-        btn.addEventListener("click", function() {
-          var sec = btn.getAttribute("data-sec");
-          showSection(sec);
-        });
-      });
-
+      navBtns.forEach(function(btn) { btn.addEventListener("click", function() { showSection(btn.getAttribute("data-sec")); }); });
       function showSection(id) {
         document.querySelectorAll(".section").forEach(function(s) { s.classList.remove("active"); });
         document.getElementById("sec-" + id).classList.add("active");
@@ -486,54 +483,36 @@
       document.querySelectorAll("#formatOptions .format-opt").forEach(function(el) {
         el.addEventListener("click", function() {
           document.querySelectorAll("#formatOptions .format-opt").forEach(function(e) { e.classList.remove("selected"); });
-          el.classList.add("selected");
-          selectedFormat = el.getAttribute("data-val");
+          el.classList.add("selected"); selectedFormat = el.getAttribute("data-val");
         });
       });
 
       // === AUTO DATES ===
       document.getElementById("fStatus").addEventListener("change", function() {
-        var s = this.value;
-        var today = new Date().toISOString().split("T")[0];
-        if (s === "Leyendo" && !document.getElementById("fDateStart").value) {
-          document.getElementById("fDateStart").value = today;
-          showToast("📅 Inicio: hoy");
-        }
-        if (s === "Leído") {
-          if (!document.getElementById("fDateEnd").value) {
-            document.getElementById("fDateEnd").value = today;
-            showToast("📅 Fin: hoy");
-          }
-          if (!document.getElementById("fDateStart").value) {
-            document.getElementById("fDateStart").value = today;
-          }
-        }
+        var s = this.value, today = new Date().toISOString().split("T")[0];
+        if (s === "Leyendo" && !document.getElementById("fDateStart").value) { document.getElementById("fDateStart").value = today; showToast("\ud83d\udcc5 Inicio: hoy"); }
+        if (s === "Le\u00eddo") { if (!document.getElementById("fDateEnd").value) { document.getElementById("fDateEnd").value = today; showToast("\ud83d\udcc5 Fin: hoy"); } if (!document.getElementById("fDateStart").value) document.getElementById("fDateStart").value = today; }
       });
 
       // === CURRENCY ===
       function convertCurrency() {
-        var p = parseFloat(document.getElementById("fPrice").value) || 0;
-        var c = document.getElementById("fCurrency").value;
-        var h = document.getElementById("conversionHint");
+        var p = parseFloat(document.getElementById("fPrice").value) || 0, c = document.getElementById("fCurrency").value, h = document.getElementById("conversionHint");
         if (!p) { h.textContent = ""; return; }
-        if (c === "USD") h.textContent = "≈ L " + (p * RATES.USD_HNL).toFixed(2) + " | €" + (p / RATES.EUR_USD).toFixed(2);
-        else if (c === "HNL") h.textContent = "≈ $" + (p / RATES.USD_HNL).toFixed(2) + " | €" + (p / RATES.EUR_HNL).toFixed(2);
-        else h.textContent = "≈ $" + (p * RATES.EUR_USD).toFixed(2) + " | L " + (p * RATES.EUR_HNL).toFixed(2);
+        if (c === "USD") h.textContent = "\u2248 L " + (p * RATES.USD_HNL).toFixed(2) + " | \u20ac" + (p / RATES.EUR_USD).toFixed(2);
+        else if (c === "HNL") h.textContent = "\u2248 $" + (p / RATES.USD_HNL).toFixed(2) + " | \u20ac" + (p / RATES.EUR_HNL).toFixed(2);
+        else h.textContent = "\u2248 $" + (p * RATES.EUR_USD).toFixed(2) + " | L " + (p * RATES.EUR_HNL).toFixed(2);
       }
       document.getElementById("fPrice").addEventListener("input", convertCurrency);
       document.getElementById("fCurrency").addEventListener("change", convertCurrency);
-
       function toUSD(p, c) { if (c === "USD") return p; if (c === "HNL") return p / RATES.USD_HNL; return p * RATES.EUR_USD; }
       function toHNL(p, c) { if (c === "HNL") return p; if (c === "USD") return p * RATES.USD_HNL; return p * RATES.EUR_HNL; }
       function toEUR(p, c) { if (c === "EUR") return p; if (c === "USD") return p / RATES.EUR_USD; return p / RATES.EUR_HNL; }
 
       // === DATALISTS ===
       function updateDataLists() {
-        var pubs = books.map(function(b) { return b.publisher; }).filter(Boolean);
-        pubs = Array.from(new Set(pubs));
+        var pubs = Array.from(new Set(books.map(function(b) { return b.publisher; }).filter(Boolean)));
         document.getElementById("publisherList").innerHTML = pubs.map(function(p) { return '<option value="' + p + '">'; }).join("");
-        var stores = books.map(function(b) { return b.store; }).filter(Boolean);
-        stores = Array.from(new Set(stores));
+        var stores = Array.from(new Set(books.map(function(b) { return b.store; }).filter(Boolean)));
         document.getElementById("storeList").innerHTML = stores.map(function(s) { return '<option value="' + s + '">'; }).join("");
       }
 
@@ -541,58 +520,35 @@
       document.getElementById("btnSave").addEventListener("click", function() {
         var title = document.getElementById("fTitle").value.trim();
         var author = document.getElementById("fAuthor").value.trim();
-        if (!title || !author) { showToast("⚠️ Título y autor obligatorios"); return; }
+        if (!title || !author) { showToast("\u26a0\ufe0f T\u00edtulo y autor obligatorios"); return; }
         var price = parseFloat(document.getElementById("fPrice").value) || 0;
         var currency = document.getElementById("fCurrency").value;
         var book = {
-          id: editingId || Date.now(), title: title, author: author,
-          cover: selectedCover || "",
-          genre: document.getElementById("fGenre").value,
-          year: document.getElementById("fYear").value,
-          format: selectedFormat,
-          pages: document.getElementById("fPages").value,
-          price: price, currency: currency,
-          priceUSD: toUSD(price, currency),
-          priceHNL: toHNL(price, currency),
-          priceEUR: toEUR(price, currency),
-          rating: document.getElementById("fRating").value,
-          status: document.getElementById("fStatus").value,
-          dateStart: document.getElementById("fDateStart").value,
-          dateEnd: document.getElementById("fDateEnd").value,
-          publisher: document.getElementById("fPublisher").value.trim(),
-          store: document.getElementById("fStore").value.trim(),
-          isbn: document.getElementById("fIsbn").value.trim(),
-          saga: document.getElementById("fSaga").value.trim(),
+          id: editingId || Date.now(), title: title, author: author, cover: selectedCover || "",
+          genre: document.getElementById("fGenre").value, year: document.getElementById("fYear").value,
+          format: selectedFormat, pages: document.getElementById("fPages").value,
+          price: price, currency: currency, priceUSD: toUSD(price, currency), priceHNL: toHNL(price, currency), priceEUR: toEUR(price, currency),
+          rating: document.getElementById("fRating").value, status: document.getElementById("fStatus").value,
+          dateStart: document.getElementById("fDateStart").value, dateEnd: document.getElementById("fDateEnd").value,
+          publisher: document.getElementById("fPublisher").value.trim(), store: document.getElementById("fStore").value.trim(),
+          isbn: document.getElementById("fIsbn").value.trim(), saga: document.getElementById("fSaga").value.trim(),
           mood: (document.querySelector(".mood-opt.selected") ? document.querySelector(".mood-opt.selected").getAttribute("data-mood") : ""),
           notes: document.getElementById("fNotes").value.trim(),
           createdAt: editingId ? ((books.find(function(b) { return b.id === editingId; }) || {}).createdAt || new Date().toISOString()) : new Date().toISOString(),
           log: editingId ? ((books.find(function(b) { return b.id === editingId; }) || {}).log || []) : [{ date: new Date().toISOString(), action: "Agregado", from: "", to: document.getElementById("fStatus").value }]
         };
         var wasEditing = !!editingId;
-        if (editingId) {
-          var idx = books.findIndex(function(b) { return b.id === editingId; });
-          if (idx !== -1) books[idx] = book;
-          editingId = null;
-          showToast("✅ Actualizado");
-        } else {
-          books.unshift(book);
-          showToast("✅ Guardado");
-        }
-        saveBooks();
-        clearForm(); updateStats(); updateDataLists();
+        if (editingId) { var idx = books.findIndex(function(b) { return b.id === editingId; }); if (idx !== -1) books[idx] = book; editingId = null; showToast("\u2705 Actualizado"); }
+        else { books.unshift(book); showToast("\u2705 Guardado"); }
+        saveBooks(); clearForm(); updateStats(); updateDataLists();
         document.getElementById("btnCancel").style.display = "none";
         document.getElementById("btnSave").innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Libro';
-        if (wasEditing) {
-          showSection("reading");
-        } else {
-          document.getElementById("postSaveOptions").style.display = "flex";
-        }
+        if (wasEditing) { showSection("reading"); } else { document.getElementById("postSaveOptions").style.display = "flex"; }
       });
 
       function clearForm() {
         ["fTitle","fAuthor","fSaga","fYear","fPages","fPrice","fPublisher","fStore","fIsbn","fNotes","fDateStart","fDateEnd"].forEach(function(id) { document.getElementById(id).value = ""; });
-        document.getElementById("fGenre").value = "";
-        selectedGenres = [];
+        document.getElementById("fGenre").value = ""; selectedGenres = [];
         document.querySelectorAll(".genre-opt").forEach(function(g) { g.classList.remove("selected"); });
         document.getElementById("fRating").selectedIndex = 0;
         document.querySelectorAll(".mood-opt").forEach(function(el) { el.classList.remove("selected"); });
@@ -604,370 +560,346 @@
         document.getElementById("coverPreview").innerHTML = '<i class="fa-solid fa-image" style="color:var(--scarlet-mid);font-size:22px"></i>';
       }
 
-      // === LIBRARY ===
-      // Calendar-based library - no search needed
-
-
+      // === RENDER READING ===
       function renderReading() {
         var reading = books.filter(function(b) { return b.status === "Leyendo"; });
         var pending = books.filter(function(b) { return b.status === "Pendiente"; });
-        
-        // Current reading section
         var crEl = document.getElementById("currentReading");
         if (reading.length > 0) {
-          var b = reading[0]; // Show first reading book prominently
-          var coverHtml = b.cover ? '<img src="' + b.cover + '" style="width:90px;height:120px;object-fit:cover;border-radius:10px">' : '<div style="width:90px;height:120px;border-radius:10px;background:var(--scarlet-light);display:flex;align-items:center;justify-content:center;font-size:32px">' + "📚" + '</div>';
-          var html = '<div style="display:flex;gap:14px;align-items:flex-start">';
-          html += coverHtml;
-          html += '<div style="flex:1"><h3 style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px">' + b.title + '</h3>';
-          html += '<p style="font-size:12px;color:var(--scarlet);font-weight:600;margin-bottom:6px">' + (b.author || 'Autor desconocido') + '</p>';
+          var b = reading[0];
+          var coverHtml = b.cover ? '<img src="' + b.cover + '" style="width:90px;height:120px;object-fit:cover;border-radius:10px">' : '<div style="width:90px;height:120px;border-radius:10px;background:var(--scarlet-light);display:flex;align-items:center;justify-content:center;font-size:32px">\ud83d\udcda</div>';
+          var html = '<div style="display:flex;gap:14px;align-items:flex-start">' + coverHtml + '<div style="flex:1"><h3 style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px">' + b.title + '</h3><p style="font-size:12px;color:var(--scarlet);font-weight:600;margin-bottom:6px">' + (b.author || '') + '</p>';
           if (b.genre) html += '<span class="tag" style="margin-bottom:6px">' + b.genre + '</span> ';
           if (b.format) html += '<span class="tag tag-gold">' + b.format + '</span>';
-          html += '<div style="margin-top:10px;display:flex;gap:6px">';
-          html += '<button class="btn btn-sm" style="background:var(--success);color:#fff" onclick="markAsRead(' + b.id + ')"><i class="fa-solid fa-check"></i> Terminado</button>';
-          html += '<button class="btn btn-sm btn-outline" onclick="markAsAbandoned(' + b.id + ')"><i class="fa-solid fa-xmark"></i> Pausar</button>';
-          html += '</div>';
+          html += '<div style="margin-top:10px;display:flex;gap:6px"><button class="btn btn-sm" style="background:var(--success);color:#fff" onclick="markAsRead(' + b.id + ')"><i class="fa-solid fa-check"></i> Terminado</button><button class="btn btn-sm btn-outline" onclick="markAsAbandoned(' + b.id + ')"><i class="fa-solid fa-xmark"></i> Pausar</button></div>';
           if (b.dateStart) html += '<p style="font-size:10px;color:var(--text-muted);margin-top:8px"><i class="fa-solid fa-calendar"></i> Iniciado: ' + b.dateStart + '</p>';
           html += '</div></div>';
-          // Bitácora
-          if (b.log && b.log.length) {
-            html += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">';
-            html += '<p style="font-size:10px;font-weight:700;color:var(--text-sec);margin-bottom:6px"><i class="fa-solid fa-clock-rotate-left"></i> Bitácora</p>';
-            b.log.slice().reverse().forEach(function(entry) {
-              var d = new Date(entry.date);
-              var dateStr = d.toLocaleDateString("es", { day: "numeric", month: "short", year: "numeric" });
-              var timeStr = d.toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" });
-              html += '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:4px;font-size:10px">';
-              html += '<span style="color:var(--text-muted);min-width:85px">' + dateStr + '</span>';
-              html += '<span style="color:var(--scarlet);font-weight:600">' + entry.action + '</span>';
-              html += '</div>';
-            });
-            html += '</div>';
-          }
-          
-          // Show other reading books if multiple
-          if (reading.length > 1) {
-            html += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">';
-            html += '<p style="font-size:10px;color:var(--text-muted);margin-bottom:6px">También leyendo:</p>';
-            for (var i = 1; i < reading.length; i++) {
-              var rb = reading[i];
-              html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:6px;background:var(--cream);border-radius:8px">';
-              html += '<div style="width:30px;height:40px;border-radius:4px;overflow:hidden;flex-shrink:0">' + (rb.cover ? '<img src="' + rb.cover + '" style="width:100%;height:100%;object-fit:cover">' : '<div style="width:100%;height:100%;background:var(--scarlet-light);display:flex;align-items:center;justify-content:center;font-size:12px">' + "📚" + '</div>') + '</div>';
-              html += '<div style="flex:1;min-width:0"><p style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + rb.title + '</p>';
-              html += '<p style="font-size:10px;color:var(--scarlet)">' + (rb.author || '') + '</p></div>';
-              html += '<button class="btn btn-sm" style="background:var(--success);color:#fff;font-size:9px" onclick="markAsRead(' + rb.id + ')"><i class="fa-solid fa-check"></i></button>';
-              html += '</div>';
-            }
-            html += '</div>';
-          }
+          if (b.log && b.log.length) { html += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)"><p style="font-size:10px;font-weight:700;color:var(--text-sec);margin-bottom:6px"><i class="fa-solid fa-clock-rotate-left"></i> Bit\u00e1cora</p>'; b.log.slice().reverse().forEach(function(entry) { var d = new Date(entry.date); html += '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:4px;font-size:10px"><span style="color:var(--text-muted);min-width:85px">' + d.toLocaleDateString("es", { day: "numeric", month: "short", year: "numeric" }) + '</span><span style="color:var(--scarlet);font-weight:600">' + entry.action + '</span></div>'; }); html += '</div>'; }
+          if (reading.length > 1) { html += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)"><p style="font-size:10px;color:var(--text-muted);margin-bottom:6px">Tambi\u00e9n leyendo:</p>'; for (var i = 1; i < reading.length; i++) { var rb = reading[i]; html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:6px;background:var(--cream);border-radius:8px"><div style="width:30px;height:40px;border-radius:4px;overflow:hidden;flex-shrink:0">' + (rb.cover ? '<img src="' + rb.cover + '" style="width:100%;height:100%;object-fit:cover">' : '<div style="width:100%;height:100%;background:var(--scarlet-light);display:flex;align-items:center;justify-content:center;font-size:12px">\ud83d\udcda</div>') + '</div><div style="flex:1;min-width:0"><p style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + rb.title + '</p><p style="font-size:10px;color:var(--scarlet)">' + (rb.author || '') + '</p></div><button class="btn btn-sm" style="background:var(--success);color:#fff;font-size:9px" onclick="markAsRead(' + rb.id + ')"><i class="fa-solid fa-check"></i></button></div>'; } html += '</div>'; }
           crEl.innerHTML = html;
-        } else {
-          crEl.innerHTML = '<div class="empty"><i class="fa-solid fa-book-open"></i><p>No hay un libro en curso</p><p style="font-size:11px;margin-top:4px;color:var(--text-muted)">Selecciona uno de tus pendientes para comenzar</p></div>';
-        }
-        
-        // Pending books section
+        } else { crEl.innerHTML = '<div class="empty"><i class="fa-solid fa-book-open"></i><p>No hay un libro en curso</p></div>'; }
         var pbEl = document.getElementById("pendingBooks");
-        if (pending.length > 0) {
-          var phtml = '';
-          pending.forEach(function(pb) {
-            phtml += '<div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:all .2s" onclick="startReading(' + pb.id + ')" onmouseover="this.style.borderColor=\'var(--scarlet)\'" onmouseout="this.style.borderColor=\'var(--border)\'">';
-            phtml += '<div style="width:38px;height:52px;border-radius:6px;overflow:hidden;flex-shrink:0">' + (pb.cover ? '<img src="' + pb.cover + '" style="width:100%;height:100%;object-fit:cover">' : '<div style="width:100%;height:100%;background:var(--scarlet-light);display:flex;align-items:center;justify-content:center;font-size:14px">' + "📚" + '</div>') + '</div>';
-            phtml += '<div style="flex:1;min-width:0"><p style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + pb.title + '</p>';
-            phtml += '<p style="font-size:10px;color:var(--text-sec)">' + (pb.author || 'Sin autor') + '</p></div>';
-            phtml += '<div style="text-align:center"><i class="fa-solid fa-play" style="color:var(--scarlet);font-size:12px"></i><p style="font-size:8px;color:var(--text-muted);margin-top:2px">Iniciar</p></div>';
-            phtml += '</div>';
-          });
-          pbEl.innerHTML = phtml;
-        } else {
-          pbEl.innerHTML = '<div class="empty" style="padding:20px"><i class="fa-solid fa-inbox"></i><p>No hay libros pendientes</p></div>';
-        }
-
-        // Wishlist section
+        if (pending.length > 0) { var phtml = ''; pending.forEach(function(pb) { phtml += '<div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer" onclick="startReading(' + pb.id + ')"><div style="width:38px;height:52px;border-radius:6px;overflow:hidden;flex-shrink:0">' + (pb.cover ? '<img src="' + pb.cover + '" style="width:100%;height:100%;object-fit:cover">' : '<div style="width:100%;height:100%;background:var(--scarlet-light);display:flex;align-items:center;justify-content:center;font-size:14px">\ud83d\udcda</div>') + '</div><div style="flex:1;min-width:0"><p style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + pb.title + '</p><p style="font-size:10px;color:var(--text-sec)">' + (pb.author || '') + '</p></div><div style="text-align:center"><i class="fa-solid fa-play" style="color:var(--scarlet);font-size:12px"></i><p style="font-size:8px;color:var(--text-muted);margin-top:2px">Iniciar</p></div></div>'; }); pbEl.innerHTML = phtml; }
+        else { pbEl.innerHTML = '<div class="empty" style="padding:20px"><i class="fa-solid fa-inbox"></i><p>No hay libros pendientes</p></div>'; }
         var wishlist = books.filter(function(b) { return b.status === "Deseado"; });
         var wlEl = document.getElementById("wishlistBooks");
-        if (wishlist.length > 0) {
-          var whtml = '';
-          wishlist.forEach(function(wb) {
-            var priceStr = wb.price ? (wb.currency === "HNL" ? "L" : wb.currency === "EUR" ? "€" : "$") + wb.price.toFixed(2) : "";
-            whtml += '<div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px">';
-            whtml += '<div style="width:38px;height:52px;border-radius:6px;overflow:hidden;flex-shrink:0">' + (wb.cover ? '<img src="' + wb.cover + '" style="width:100%;height:100%;object-fit:cover">' : '<div style="width:100%;height:100%;background:var(--scarlet-light);display:flex;align-items:center;justify-content:center;font-size:14px">💫</div>') + '</div>';
-            whtml += '<div style="flex:1;min-width:0"><p style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + wb.title + '</p>';
-            whtml += '<p style="font-size:10px;color:var(--text-sec)">' + (wb.author || '') + '</p>';
-            if (priceStr) whtml += '<p style="font-size:10px;color:var(--gold);font-weight:600">' + priceStr + (wb.store ? ' · ' + wb.store : '') + '</p>';
-            whtml += '</div>';
-            whtml += '<button class="btn btn-sm" style="background:var(--success);color:#fff;font-size:9px;white-space:nowrap" onclick="markAsPurchased(' + wb.id + ')"><i class="fa-solid fa-cart-shopping"></i> Comprado</button>';
-            whtml += '</div>';
-          });
-          wlEl.innerHTML = whtml;
-        } else {
-          wlEl.innerHTML = '<div class="empty" style="padding:20px"><i class="fa-solid fa-star"></i><p>No hay libros en tu lista de deseos</p></div>';
-        }
-
+        if (wishlist.length > 0) { var whtml = ''; wishlist.forEach(function(wb) { var priceStr = wb.price ? (wb.currency === "HNL" ? "L" : wb.currency === "EUR" ? "\u20ac" : "$") + wb.price.toFixed(2) : ""; whtml += '<div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px"><div style="width:38px;height:52px;border-radius:6px;overflow:hidden;flex-shrink:0">' + (wb.cover ? '<img src="' + wb.cover + '" style="width:100%;height:100%;object-fit:cover">' : '<div style="width:100%;height:100%;background:var(--scarlet-light);display:flex;align-items:center;justify-content:center;font-size:14px">\ud83d\udcab</div>') + '</div><div style="flex:1;min-width:0"><p style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + wb.title + '</p><p style="font-size:10px;color:var(--text-sec)">' + (wb.author || '') + '</p>' + (priceStr ? '<p style="font-size:10px;color:var(--gold);font-weight:600">' + priceStr + (wb.store ? ' \u00b7 ' + wb.store : '') + '</p>' : '') + '</div><button class="btn btn-sm" style="background:var(--success);color:#fff;font-size:9px;white-space:nowrap" onclick="markAsPurchased(' + wb.id + ')"><i class="fa-solid fa-cart-shopping"></i> Comprado</button></div>'; }); wlEl.innerHTML = whtml; }
+        else { wlEl.innerHTML = '<div class="empty" style="padding:20px"><i class="fa-solid fa-star"></i><p>No hay libros en tu lista de deseos</p></div>'; }
       }
 
-      function startReading(id) {
-        var today = new Date().toISOString().slice(0,10);
-        books = books.map(function(b) {
-          if (b.id === id) {
-            b.status = "Leyendo";
-            b.dateStart = today;
-            if (!b.log) b.log = [];
-            b.log.push({ date: new Date().toISOString(), action: "Iniciado", from: "Pendiente", to: "Leyendo" });
-          }
-          return b;
-        });
-        saveBooks();
-        renderReading();
-        updateStats();
-        showToast("📚 ¡Lectura iniciada!");
-      }
+      function startReading(id) { books = books.map(function(b) { if (b.id === id) { b.status = "Leyendo"; b.dateStart = new Date().toISOString().slice(0,10); if (!b.log) b.log = []; b.log.push({ date: new Date().toISOString(), action: "Iniciado", from: "Pendiente", to: "Leyendo" }); } return b; }); saveBooks(); renderReading(); updateStats(); showToast("\ud83d\udcda \u00a1Lectura iniciada!"); }
       window.startReading = startReading;
 
-      
-      function markAsPurchased(id) {
-        var today = new Date().toISOString();
-        books = books.map(function(b) {
-          if (b.id === id) {
-            if (!b.log) b.log = [];
-            b.log.push({ date: today, action: "Comprado", from: "Deseado", to: "Pendiente" });
-            b.status = "Pendiente";
-            b.datePurchase = today.slice(0, 10);
-          }
-          return b;
-        });
-        saveBooks();
-        renderReading();
-        updateStats();
-        showToast("🛒 ¡Libro comprado! Pasó a Pendientes");
-      }
+      function markAsPurchased(id) { books = books.map(function(b) { if (b.id === id) { if (!b.log) b.log = []; b.log.push({ date: new Date().toISOString(), action: "Comprado", from: "Deseado", to: "Pendiente" }); b.status = "Pendiente"; b.datePurchase = new Date().toISOString().slice(0, 10); } return b; }); saveBooks(); renderReading(); updateStats(); showToast("\ud83d\uded2 \u00a1Libro comprado!"); }
       window.markAsPurchased = markAsPurchased;
 
-function markAsRead(id) {
-        // Show completion popup instead of immediate save
+      function markAsRead(id) {
         var b = books.find(function(x) { return x.id === id; });
         if (!b) return;
-        var html = '<div style="text-align:center">';
-        html += '<div style="position:relative;display:inline-block;margin-bottom:12px">';
-        html += b.cover ? '<img src="' + b.cover + '" style="width:80px;height:110px;object-fit:cover;border-radius:10px;box-shadow:0 4px 15px rgba(0,0,0,.2)">' : '<div style="width:80px;height:110px;border-radius:10px;background:var(--scarlet-light);display:flex;align-items:center;justify-content:center;font-size:28px">📚</div>';
-        html += '<div style="position:absolute;inset:-4px;border-radius:14px;border:3px solid var(--success);animation:completeSpin 1.5s linear"></div>';
-        html += '</div>';
-        html += '<h3 style="font-size:14px;font-weight:700;margin-bottom:2px">' + b.title + '</h3>';
-        html += '<p style="font-size:11px;color:var(--text-sec);margin-bottom:4px">' + (b.author || '') + '</p>';
+        var html = '<div style="text-align:center"><div style="position:relative;display:inline-block;margin-bottom:12px">';
+        html += b.cover ? '<img src="' + b.cover + '" style="width:80px;height:110px;object-fit:cover;border-radius:10px;box-shadow:0 4px 15px rgba(0,0,0,.2)">' : '<div style="width:80px;height:110px;border-radius:10px;background:var(--scarlet-light);display:flex;align-items:center;justify-content:center;font-size:28px">\ud83d\udcda</div>';
+        html += '<div style="position:absolute;inset:-4px;border-radius:14px;border:3px solid var(--success);animation:completeSpin 1.5s linear"></div></div>';
+        html += '<h3 style="font-size:14px;font-weight:700;margin-bottom:2px">' + b.title + '</h3><p style="font-size:11px;color:var(--text-sec);margin-bottom:4px">' + (b.author || '') + '</p>';
         if (b.dateStart) html += '<p style="font-size:10px;color:var(--text-muted)">Iniciado: ' + b.dateStart + '</p>';
         html += '<p style="font-size:10px;color:var(--success);font-weight:600">Terminado: ' + new Date().toISOString().slice(0,10) + '</p>';
-        html += '<p style="font-size:12px;font-weight:700;margin-top:12px;margin-bottom:6px">¿Qué calificación le das?</p>';
-        html += '<div id="ratingStars" style="display:flex;gap:8px;justify-content:center;margin-bottom:8px">';
-        for (var i = 1; i <= 5; i++) {
-          html += '<span style="font-size:24px;cursor:pointer;opacity:0.4" data-star="' + i + '" onclick="selectRating(' + i + ')">⭐</span>';
-        }
-        html += '</div>';
-        html += '<p style="font-size:11px;margin-bottom:10px;color:var(--text-muted)">¿Qué mood te dejó?</p>';
-        html += '<select id="completionMood" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;background:var(--cream);color:var(--text);margin-bottom:12px"><option value="">Seleccionar...</option><option>😊 Feliz</option><option>😢 Triste</option><option>😱 Tenso</option><option>🤔 Reflexivo</option><option>😍 Romántico</option><option>😂 Divertido</option><option>😴 Relajante</option><option>🤯 Impactante</option><option>💪 Motivante</option></select>';
-        html += '<button class="btn btn-primary" onclick="confirmMarkAsRead(' + id + ')"><i class="fa-solid fa-check"></i> Confirmar</button>';
-        html += '</div>';
+        html += '<p style="font-size:12px;font-weight:700;margin-top:12px;margin-bottom:6px">\u00bfQu\u00e9 calificaci\u00f3n le das?</p><div id="ratingStars" style="display:flex;gap:8px;justify-content:center;margin-bottom:8px">';
+        for (var i = 1; i <= 5; i++) html += '<span style="font-size:24px;cursor:pointer;opacity:0.4" data-star="' + i + '" onclick="selectRating(' + i + ')">\u2b50</span>';
+        html += '</div><p style="font-size:11px;margin-bottom:10px;color:var(--text-muted)">\u00bfQu\u00e9 mood te dej\u00f3?</p>';
+        html += '<select id="completionMood" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;background:var(--cream);color:var(--text);margin-bottom:12px"><option value="">Seleccionar...</option><option>\ud83d\ude0a Feliz</option><option>\ud83d\ude22 Triste</option><option>\ud83d\ude31 Tenso</option><option>\ud83e\udd14 Reflexivo</option><option>\ud83d\ude0d Rom\u00e1ntico</option><option>\ud83d\ude02 Divertido</option><option>\ud83d\ude34 Relajante</option><option>\ud83e\udd2f Impactante</option><option>\ud83d\udcaa Motivante</option></select>';
+        html += '<button class="btn btn-primary" onclick="confirmMarkAsRead(' + id + ')"><i class="fa-solid fa-check"></i> Confirmar</button></div>';
         document.getElementById("bookDetailContent").innerHTML = html;
         document.getElementById("bookDetailModal").classList.add("show");
         window.selectedRating = 0;
       }
       window.markAsRead = markAsRead;
 
-      window.selectRating = function(stars) {
-        window.selectedRating = stars;
-        document.querySelectorAll("#ratingStars span").forEach(function(el) {
-          var s = parseInt(el.getAttribute("data-star"));
-          el.style.opacity = s <= stars ? "1" : "0.4";
-        });
-      };
+      window.selectRating = function(stars) { window.selectedRating = stars; document.querySelectorAll("#ratingStars span").forEach(function(el) { el.style.opacity = parseInt(el.getAttribute("data-star")) <= stars ? "1" : "0.4"; }); };
 
       window.confirmMarkAsRead = function(id) {
         var mood = document.getElementById("completionMood") ? document.getElementById("completionMood").value : "";
-        books = books.map(function(b) {
-          if (b.id === id) {
-            b.status = "Leído";
-            b.dateEnd = new Date().toISOString().slice(0,10);
-            b.rating = window.selectedRating || b.rating;
-            if (mood) b.mood = mood;
-            if (!b.log) b.log = [];
-            b.log.push({ date: new Date().toISOString(), action: "Terminado", from: "Leyendo", to: "Leído" });
-          }
-          return b;
-        });
-        saveBooks();
-        document.getElementById("bookDetailModal").classList.remove("show");
-        renderReading();
-        updateStats();
-        showToast("🎉 ¡Felicidades! Libro terminado");
+        books = books.map(function(b) { if (b.id === id) { b.status = "Le\u00eddo"; b.dateEnd = new Date().toISOString().slice(0,10); b.rating = window.selectedRating || b.rating; if (mood) b.mood = mood; if (!b.log) b.log = []; b.log.push({ date: new Date().toISOString(), action: "Terminado", from: "Leyendo", to: "Le\u00eddo" }); } return b; });
+        saveBooks(); document.getElementById("bookDetailModal").classList.remove("show"); renderReading(); updateStats(); showToast("\ud83c\udf89 \u00a1Felicidades! Libro terminado");
       };
 
-      function markAsAbandoned(id) {
-        books = books.map(function(b) {
-          if (b.id === id) {
-            if (!b.log) b.log = [];
-            b.log.push({ date: new Date().toISOString(), action: "Pausado", from: b.status, to: "Pendiente" });
-            b.status = "Pendiente";
-            b.dateStart = "";
-          }
-          return b;
-        });
-        saveBooks();
-        renderReading();
-        updateStats();
-        showToast("📝 Libro devuelto a pendientes");
-      }
+      function markAsAbandoned(id) { books = books.map(function(b) { if (b.id === id) { if (!b.log) b.log = []; b.log.push({ date: new Date().toISOString(), action: "Pausado", from: b.status, to: "Pendiente" }); b.status = "Pendiente"; b.dateStart = ""; } return b; }); saveBooks(); renderReading(); updateStats(); showToast("\ud83d\udcdd Libro devuelto a pendientes"); }
       window.markAsAbandoned = markAsAbandoned;
 
+      // === LIBRARY (Calendar) ===
       function renderLibrary() {
-        var readBooks = books.filter(function(b) { return b.status === "Leído"; });
-        
-        // Stats
+        var readBooks = books.filter(function(b) { return b.status === "Le\u00eddo"; });
         document.getElementById("statTotalRead").textContent = readBooks.length;
         var totalPages = readBooks.reduce(function(s, b) { return s + (parseInt(b.pages) || 0); }, 0);
         document.getElementById("statTotalPages").textContent = totalPages > 999 ? (totalPages/1000).toFixed(1) + "k" : totalPages;
-        
-        // Calendar navigation
-        if (!window.calMonth) { var now = new Date(); window.calMonth = now.getMonth(); window.calYear = now.getFullYear(); }
+        if (!window.calMonth && window.calMonth !== 0) { var now = new Date(); window.calMonth = now.getMonth(); window.calYear = now.getFullYear(); }
         var months = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
         document.getElementById("calMonthTitle").textContent = months[window.calMonth] + " " + window.calYear;
-        
-        // Get books for this month that were being read (started or finished)
         var monthStr = window.calYear + "-" + String(window.calMonth + 1).padStart(2, "0");
-        var monthBooks = readBooks.filter(function(b) {
-          return (b.dateEnd && b.dateEnd.startsWith(monthStr)) || (b.dateStart && b.dateStart.startsWith(monthStr));
-        });
-        
-        // Also get books that span this month (started before, ended after or during)
-        var allActive = readBooks.filter(function(b) {
-          if (!b.dateStart && !b.dateEnd) return false;
-          var start = b.dateStart || b.dateEnd;
-          var end = b.dateEnd || b.dateStart;
-          var monthStart = monthStr + "-01";
-          var monthEnd = monthStr + "-31";
-          return start <= monthEnd && end >= monthStart;
-        });
-        
-        // Render calendar grid
+        var allActive = readBooks.filter(function(b) { if (!b.dateStart && !b.dateEnd) return false; var start = b.dateStart || b.dateEnd; var end = b.dateEnd || b.dateStart; return start <= monthStr + "-31" && end >= monthStr + "-01"; });
         var firstDay = new Date(window.calYear, window.calMonth, 1).getDay();
         var daysInMonth = new Date(window.calYear, window.calMonth + 1, 0).getDate();
-        var dayNames = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
-        
         var html = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:12px">';
-        dayNames.forEach(function(d) { html += '<div style="font-size:9px;text-align:center;color:var(--text-muted);padding:4px">' + d + '</div>'; });
-        
+        ["Dom","Lun","Mar","Mi\u00e9","Jue","Vie","S\u00e1b"].forEach(function(d) { html += '<div style="font-size:9px;text-align:center;color:var(--text-muted);padding:4px">' + d + '</div>'; });
         for (var i = 0; i < firstDay; i++) html += '<div></div>';
-        
         for (var day = 1; day <= daysInMonth; day++) {
           var dateStr = monthStr + "-" + String(day).padStart(2, "0");
-          var dayBooks = allActive.filter(function(b) {
-            var s = b.dateStart || b.dateEnd;
-            var e = b.dateEnd || b.dateStart;
-            return s <= dateStr && e >= dateStr;
-          });
           var endedToday = readBooks.filter(function(b) { return b.dateEnd === dateStr; });
           var startedToday = allActive.filter(function(b) { return b.dateStart === dateStr; });
-          
-          var bgColor = "transparent";
-          var border = "none";
-          if (dayBooks.length > 0) bgColor = "rgba(220,38,38,0.08)";
-          if (startedToday.length > 0) border = "2px solid rgba(220,38,38,0.3)";
-          
-          html += '<div style="text-align:center;padding:3px;border-radius:6px;background:' + bgColor + ';border:' + border + ';min-height:36px;position:relative">';
-          html += '<span style="font-size:9px;color:var(--text-muted)">' + day + '</span>';
-          
-          if (endedToday.length > 0) {
-            endedToday.forEach(function(eb) {
-              var thumb = eb.cover ? '<img src="' + eb.cover + '" style="width:22px;height:28px;object-fit:cover;border-radius:3px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.2)" onclick="showBookDetail(' + eb.id + ')">' : '<div style="width:22px;height:28px;border-radius:3px;background:var(--scarlet);display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;cursor:pointer" onclick="showBookDetail(' + eb.id + ')">📚</div>';
-              html += '<div style="margin-top:1px">' + thumb + '</div>';
-            });
-          }
+          var dayBooks = allActive.filter(function(b) { var s = b.dateStart || b.dateEnd; var e = b.dateEnd || b.dateStart; return s <= dateStr && e >= dateStr; });
+          var bgColor = dayBooks.length > 0 ? "rgba(220,38,38,0.08)" : "transparent";
+          var border = startedToday.length > 0 ? "2px solid rgba(220,38,38,0.3)" : "none";
+          html += '<div style="text-align:center;padding:3px;border-radius:6px;background:' + bgColor + ';border:' + border + ';min-height:36px"><span style="font-size:9px;color:var(--text-muted)">' + day + '</span>';
+          endedToday.forEach(function(eb) { html += '<div style="margin-top:1px">' + (eb.cover ? '<img src="' + eb.cover + '" style="width:22px;height:28px;object-fit:cover;border-radius:3px;cursor:pointer" onclick="showBookDetail(' + eb.id + ')">' : '<div style="width:22px;height:28px;border-radius:3px;background:var(--scarlet);display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;cursor:pointer" onclick="showBookDetail(' + eb.id + ')">\ud83d\udcda</div>') + '</div>'; });
           html += '</div>';
         }
         html += '</div>';
-        
-        // List of books read this month below calendar
-        if (monthBooks.length > 0) {
-          html += '<div class="card" style="padding:10px"><p style="font-size:10px;font-weight:700;color:var(--text-sec);margin-bottom:8px">📚 Leídos este mes</p>';
-          monthBooks.filter(function(b) { return b.dateEnd && b.dateEnd.startsWith(monthStr); }).forEach(function(b) {
-            var stars = b.rating ? "⭐".repeat(parseInt(b.rating)) : "";
-            html += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;padding:6px;border-radius:8px;background:var(--cream);cursor:pointer" onclick="showBookDetail(' + b.id + ')">';
-            html += '<div style="width:30px;height:40px;border-radius:4px;overflow:hidden;flex-shrink:0">' + (b.cover ? '<img src="' + b.cover + '" style="width:100%;height:100%;object-fit:cover">' : '<div style="width:100%;height:100%;background:var(--scarlet-light);display:flex;align-items:center;justify-content:center;font-size:10px">📚</div>') + '</div>';
-            html += '<div style="flex:1;min-width:0"><p style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + b.title + '</p>';
-            html += '<p style="font-size:9px;color:var(--text-sec)">' + (b.author || '') + (b.saga ? ' · ' + b.saga : '') + '</p>';
-            html += '<p style="font-size:9px">' + stars + (b.mood ? ' ' + b.mood.split(" ")[0] : '') + '</p>';
-            html += '</div></div>';
-          });
-          html += '</div>';
-        }
-        
+        var monthBooks = readBooks.filter(function(b) { return b.dateEnd && b.dateEnd.startsWith(monthStr); });
+        if (monthBooks.length > 0) { html += '<div class="card" style="padding:10px"><p style="font-size:10px;font-weight:700;color:var(--text-sec);margin-bottom:8px">\ud83d\udcda Le\u00eddos este mes</p>'; monthBooks.forEach(function(b) { var stars = b.rating ? "\u2b50".repeat(parseInt(b.rating)) : ""; html += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;padding:6px;border-radius:8px;background:var(--cream);cursor:pointer" onclick="showBookDetail(' + b.id + ')"><div style="width:30px;height:40px;border-radius:4px;overflow:hidden;flex-shrink:0">' + (b.cover ? '<img src="' + b.cover + '" style="width:100%;height:100%;object-fit:cover">' : '<div style="width:100%;height:100%;background:var(--scarlet-light);display:flex;align-items:center;justify-content:center;font-size:10px">\ud83d\udcda</div>') + '</div><div style="flex:1;min-width:0"><p style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + b.title + '</p><p style="font-size:9px;color:var(--text-sec)">' + (b.author || '') + (b.saga ? ' \u00b7 ' + b.saga : '') + '</p><p style="font-size:9px">' + stars + (b.mood ? ' ' + b.mood.split(" ")[0] : '') + '</p></div></div>'; }); html += '</div>'; }
         document.getElementById("calendarView").innerHTML = html;
       }
-      
+
       window.showBookDetail = function(id) {
-        var b = books.find(function(x) { return x.id === id; });
-        if (!b) return;
-        var stars = b.rating ? "⭐".repeat(parseInt(b.rating)) : "Sin calificar";
-        var html = '<div style="text-align:center">';
-        html += b.cover ? '<img src="' + b.cover + '" style="width:100px;height:140px;object-fit:cover;border-radius:10px;margin-bottom:10px;box-shadow:0 4px 15px rgba(0,0,0,.15)">' : '';
-        html += '<h3 style="font-size:15px;font-weight:700;margin-bottom:3px">' + b.title + '</h3>';
-        html += '<p style="font-size:12px;color:var(--scarlet);font-weight:600">' + (b.author || '') + '</p>';
-        if (b.saga) html += '<p style="font-size:11px;color:var(--gold);margin-top:2px">📖 ' + b.saga + '</p>';
+        var b = books.find(function(x) { return x.id === id; }); if (!b) return;
+        var stars = b.rating ? "\u2b50".repeat(parseInt(b.rating)) : "Sin calificar";
+        var html = '<div style="text-align:center">' + (b.cover ? '<img src="' + b.cover + '" style="width:100px;height:140px;object-fit:cover;border-radius:10px;margin-bottom:10px">' : '') + '<h3 style="font-size:15px;font-weight:700;margin-bottom:3px">' + b.title + '</h3><p style="font-size:12px;color:var(--scarlet);font-weight:600">' + (b.author || '') + '</p>';
+        if (b.saga) html += '<p style="font-size:11px;color:var(--gold);margin-top:2px">\ud83d\udcd6 ' + b.saga + '</p>';
         html += '<p style="margin-top:8px;font-size:14px">' + stars + '</p>';
         if (b.mood) html += '<p style="font-size:12px;margin-top:4px">' + b.mood + '</p>';
         html += '</div><div style="margin-top:12px;font-size:11px;color:var(--text-sec)">';
-        if (b.dateStart) html += '<p>📅 Inicio: ' + b.dateStart + '</p>';
-        if (b.dateEnd) html += '<p>📅 Fin: ' + b.dateEnd + '</p>';
-        if (b.pages) html += '<p>📄 ' + b.pages + ' páginas</p>';
-        if (b.genre) html += '<p>🏷️ ' + b.genre + '</p>';
-        if (b.format) html += '<p>📚 ' + b.format + '</p>';
+        if (b.dateStart) html += '<p>\ud83d\udcc5 Inicio: ' + b.dateStart + '</p>';
+        if (b.dateEnd) html += '<p>\ud83d\udcc5 Fin: ' + b.dateEnd + '</p>';
+        if (b.pages) html += '<p>\ud83d\udcc4 ' + b.pages + ' p\u00e1ginas</p>';
+        if (b.genre) html += '<p>\ud83c\udff7\ufe0f ' + b.genre + '</p>';
+        if (b.format) html += '<p>\ud83d\udcda ' + b.format + '</p>';
         if (b.notes) html += '<p style="margin-top:6px;font-style:italic;color:var(--text-muted)">"' + b.notes + '"</p>';
-        // Bitácora
-        if (b.log && b.log.length) {
-          html += '<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border)"><p style="font-weight:700;margin-bottom:4px">📋 Bitácora</p>';
-          b.log.forEach(function(entry) {
-            var d = new Date(entry.date);
-            html += '<p style="font-size:10px">' + d.toLocaleDateString("es") + ' — ' + entry.action + '</p>';
-          });
-          html += '</div>';
-        }
+        if (b.log && b.log.length) { html += '<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border)"><p style="font-weight:700;margin-bottom:4px">\ud83d\udccb Bit\u00e1cora</p>'; b.log.forEach(function(entry) { html += '<p style="font-size:10px">' + new Date(entry.date).toLocaleDateString("es") + ' \u2014 ' + entry.action + '</p>'; }); html += '</div>'; }
         html += '</div>';
+        html += '<div style="display:flex;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">';
+        html += '<button class="btn btn-sm" style="flex:1;background:var(--info);color:#fff" onclick="editBookFromDetail(' + id + ')"><i class="fa-solid fa-pen"></i> Editar</button>';
+        html += '<button class="btn btn-sm" style="flex:1;background:var(--scarlet);color:#fff" onclick="deleteBookFromDetail(' + id + ')"><i class="fa-solid fa-trash"></i> Eliminar</button>';
+        html += '</div>';
+
         document.getElementById("bookDetailContent").innerHTML = html;
         document.getElementById("bookDetailModal").classList.add("show");
       };
-      
-      document.getElementById("btnCloseDetail").addEventListener("click", function() {
-        document.getElementById("bookDetailModal").classList.remove("show");
-      });
-      
-      document.getElementById("btnCalPrev").addEventListener("click", function() {
-        window.calMonth--;
-        if (window.calMonth < 0) { window.calMonth = 11; window.calYear--; }
-        renderLibrary();
-      });
-      document.getElementById("btnCalNext").addEventListener("click", function() {
-        window.calMonth++;
-        if (window.calMonth > 11) { window.calMonth = 0; window.calYear++; }
-        renderLibrary();
-      });
 
-      function deleteBook(id) {
-        if (confirm("¿Eliminar este libro?")) {
-          books = books.filter(function(b) { return b.id !== id; });
-          saveBooks();
-          renderLibrary(); updateStats(); showToast("🗑️ Eliminado");
-        }
+      document.getElementById("btnCloseDetail").addEventListener("click", function() { document.getElementById("bookDetailModal").classList.remove("show"); });
+      document.getElementById("btnCalPrev").addEventListener("click", function() { window.calMonth--; if (window.calMonth < 0) { window.calMonth = 11; window.calYear--; } renderLibrary(); });
+      document.getElementById("btnCalNext").addEventListener("click", function() { window.calMonth++; if (window.calMonth > 11) { window.calMonth = 0; window.calYear++; } renderLibrary(); });
+
+      // === DASHBOARDS ===
+      function renderSimpleBar(containerId, data, color) { var el = document.getElementById(containerId); if (!el || !data.length) { if(el) el.innerHTML = '<div class="empty"><i class="fa-solid fa-chart-bar"></i><p>Sin datos</p></div>'; return; } var max = Math.max.apply(null, data.map(function(d) { return d.value; })); var html = '<div style="padding:8px">'; data.forEach(function(d) { var pct = max > 0 ? (d.value / max * 100) : 0; html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:10px;color:var(--text-sec);min-width:70px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + d.name + '</span><div style="flex:1;height:18px;background:var(--border);border-radius:4px;overflow:hidden"><div style="height:100%;width:' + pct + '%;background:' + (d.color || color || 'var(--scarlet)') + ';border-radius:4px"></div></div><span style="font-size:10px;font-weight:600;min-width:20px">' + d.value + '</span></div>'; }); html += '</div>'; el.innerHTML = html; }
+
+      function renderSimplePie(containerId, data) { var el = document.getElementById(containerId); if (!el || !data.length) { if(el) el.innerHTML = '<div class="empty"><i class="fa-solid fa-chart-pie"></i><p>Sin datos</p></div>'; return; } var total = data.reduce(function(s, d) { return s + d.value; }, 0); if (total === 0) { el.innerHTML = '<div class="empty"><p>Sin datos</p></div>'; return; } var size = 180, cx = size/2, cy = size/2, r = 70, ri = 40; var svg = '<svg viewBox="0 0 ' + size + ' ' + size + '" style="max-width:200px;margin:0 auto;display:block">'; var angle = -90; data.forEach(function(d) { var pct = d.value / total; var a1 = angle * Math.PI / 180; var a2 = (angle + pct * 360) * Math.PI / 180; var large = pct > 0.5 ? 1 : 0; var x1o = cx + r * Math.cos(a1), y1o = cy + r * Math.sin(a1); var x2o = cx + r * Math.cos(a2), y2o = cy + r * Math.sin(a2); var x1i = cx + ri * Math.cos(a2), y1i = cy + ri * Math.sin(a2); var x2i = cx + ri * Math.cos(a1), y2i = cy + ri * Math.sin(a1); svg += '<path d="M' + x1o + ',' + y1o + ' A' + r + ',' + r + ' 0 ' + large + ' 1 ' + x2o + ',' + y2o + ' L' + x1i + ',' + y1i + ' A' + ri + ',' + ri + ' 0 ' + large + ' 0 ' + x2i + ',' + y2i + ' Z" fill="' + (d.color || '#6b7280') + '"/>'; angle += pct * 360; }); svg += '</svg>'; var legend = '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:8px">'; data.forEach(function(d) { legend += '<span style="font-size:9px;display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:' + (d.color || '#6b7280') + ';display:inline-block"></span>' + d.name + ' (' + d.value + ')</span>'; }); legend += '</div>'; el.innerHTML = svg + legend; }
+
+      function renderDashboards() {
+        if (!books.length) return;
+        var gD = {}; books.forEach(function(b) { if (b.genre) gD[b.genre] = (gD[b.genre] || 0) + 1; });
+        renderSimplePie("chartGenre", Object.keys(gD).map(function(n) { return { name: n, value: gD[n], color: genreColors[n] || "#6b7280" }; }));
+        var aD = {}; books.forEach(function(b) { if(b.author) aD[b.author] = (aD[b.author] || 0) + 1; });
+        renderSimpleBar("chartAuthor", Object.keys(aD).map(function(k) { return { name: k, value: aD[k] }; }).sort(function(a, b) { return b.value - a.value; }).slice(0, 8), "#dc2626");
+        var moodData = {}; books.forEach(function(b) { if (b.mood) moodData[b.mood] = (moodData[b.mood] || 0) + 1; });
+        var moodColors = {"\ud83d\ude0a Feliz":"#f59e0b","\ud83d\ude22 Triste":"#3b82f6","\ud83d\ude31 Tenso":"#ef4444","\ud83e\udd14 Reflexivo":"#8b5cf6","\ud83d\ude0d Rom\u00e1ntico":"#ec4899","\ud83d\ude02 Divertido":"#10b981","\ud83d\ude34 Relajante":"#06b6d4","\ud83e\udd2f Impactante":"#f97316","\ud83d\udcaa Motivante":"#047857"};
+        renderSimplePie("chartMood", Object.keys(moodData).map(function(n) { return { name: n, value: moodData[n], color: moodColors[n] || "#6b7280" }; }));
+        var fD = {}; books.forEach(function(b) { if (b.format) fD[b.format] = (fD[b.format] || 0) + 1; });
+        renderSimpleBar("chartFormat", Object.keys(fD).map(function(k) { return { name: k, value: fD[k] }; }), "#b45309");
+        var mD = {}; books.forEach(function(b) { if (b.dateEnd) { var m = b.dateEnd.substring(0, 7); mD[m] = (mD[m] || 0) + 1; } });
+        renderSimpleBar("chartTimeline", Object.keys(mD).sort().map(function(m) { var p = m.split("-"); return { name: p[1] + "/" + p[0].slice(2), value: mD[m] }; }), "#dc2626");
+        var stD = {}; books.forEach(function(b) { if (b.store) stD[b.store] = (stD[b.store] || 0) + 1; });
+        renderSimpleBar("chartStore", Object.keys(stD).map(function(k) { return { name: k, value: stD[k] }; }).sort(function(a, b) { return b.value - a.value; }).slice(0, 8), "#b45309");
       }
 
-      function editBook(id) {
+      function renderSpending() {
+        var wp = books.filter(function(b) { return b.price > 0; });
+        var tU = 0, tH = 0, tE = 0;
+        wp.forEach(function(b) { tU += (b.priceUSD || 0); tH += (b.priceHNL || 0); tE += (b.priceEUR || 0); });
+        document.getElementById("totalSpentUSD").textContent = "$" + tU.toFixed(2) + " USD";
+        document.getElementById("totalSpentHNL").textContent = "L " + tH.toFixed(2) + " HNL";
+        document.getElementById("totalSpentEUR").textContent = "\u20ac" + tE.toFixed(2) + " EUR";
+        document.getElementById("spentCount").textContent = wp.length;
+        var mS = {}; wp.forEach(function(b) { if (b.datePurchase) { var m = b.datePurchase.substring(0, 7); mS[m] = (mS[m] || 0) + (b.priceUSD || 0); } });
+        renderSimpleBar("chartSpendMonth", Object.keys(mS).sort().map(function(m) { var p = m.split("-"); return { name: p[1] + "/" + p[0].slice(2), value: Math.round(mS[m]) }; }), "#dc2626");
+        var gS = {}; wp.forEach(function(b) { if (b.genre) gS[b.genre] = (gS[b.genre] || 0) + (b.priceUSD || 0); });
+        renderSimpleBar("chartSpendGenre", Object.keys(gS).map(function(g) { return { name: g, value: Math.round(gS[g]), color: genreColors[g] }; }).sort(function(a,b){return b.value-a.value;}), "#b45309");
+        var fS = {}; wp.forEach(function(b) { if (b.format) fS[b.format] = (fS[b.format] || 0) + (b.priceUSD || 0); });
+        renderSimpleBar("chartSpendFormat", Object.keys(fS).map(function(f) { return { name: f, value: Math.round(fS[f]) }; }), "#7c3aed");
+        var stS = {}; wp.forEach(function(b) { if (b.store) stS[b.store] = (stS[b.store] || 0) + (b.priceUSD || 0); });
+        renderSimpleBar("chartSpendStore", Object.keys(stS).map(function(s) { return { name: s, value: Math.round(stS[s]) }; }).sort(function(a,b){return b.value-a.value;}).slice(0,8), "#047857");
+      }
+
+      function exportDash() { showToast("Usa captura de pantalla para exportar"); }
+
+      // === STATS ===
+      function updateStats() {
+        document.getElementById("statBooks").textContent = books.length;
+        document.getElementById("statRead").textContent = books.filter(function(b) { return b.status === "Le\u00eddo"; }).length;
+        var u = 0, h = 0; books.forEach(function(b) { u += (b.priceUSD || 0); h += (b.priceHNL || 0); });
+        var totalPgs = books.filter(function(b) { return b.status === "Le\u00eddo"; }).reduce(function(s,b) { return s + (parseInt(b.pages) || 0); }, 0);
+        document.getElementById("statPages").textContent = totalPgs > 999 ? (totalPgs/1000).toFixed(1) + "k" : totalPgs;
+        document.getElementById("statSpent").textContent = u.toFixed(0);
+        document.getElementById("statSpentL").textContent = h.toFixed(0);
+      }
+
+      function showToast(m) { var t = document.getElementById("toast"); t.textContent = m; t.classList.add("show"); setTimeout(function() { t.classList.remove("show"); }, 2500); }
+
+      // === COVER/IMAGE ===
+      document.getElementById("btnUploadCover").addEventListener("click", function() { document.getElementById("coverFile").click(); });
+      document.getElementById("coverFile").addEventListener("change", function(e) {
+        var f = e.target.files[0]; if (!f) return;
+        if (!f.type.startsWith("image/")) { showToast("\u26a0\ufe0f Solo im\u00e1genes"); return; }
+        if (f.size > 5242880) { showToast("\u26a0\ufe0f M\u00e1x 5MB"); return; }
+        var r = new FileReader();
+        r.onload = function(ev) { selectedCover = ev.target.result; document.getElementById("coverPreview").innerHTML = '<img src="' + ev.target.result + '">'; showToast("\ud83d\uddbc\ufe0f Imagen cargada"); };
+        r.readAsDataURL(f);
+      });
+
+      document.getElementById("btnCancel").addEventListener("click", function() { editingId = null; clearForm(); document.getElementById("btnCancel").style.display = "none"; document.getElementById("btnSave").innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Libro'; showSection("reading"); showToast("\u274c Edici\u00f3n cancelada"); });
+
+      // === GENRE SELECTION ===
+      function attachGenreHandlers() {
+        document.querySelectorAll(".genre-opt").forEach(function(el) {
+          el.onclick = function() {
+            if (el.id === "genreOtro") { var row = document.getElementById("customGenreRow"); row.style.display = row.style.display === "flex" ? "none" : "flex"; document.getElementById("customGenreInput").focus(); return; }
+            el.classList.toggle("selected"); selectedGenres = [];
+            document.querySelectorAll(".genre-opt.selected").forEach(function(g) { selectedGenres.push(g.getAttribute("data-genre")); });
+            document.getElementById("fGenre").value = selectedGenres.join(", ");
+          };
+        });
+      }
+      document.getElementById("moodSelector").addEventListener("click", function(e) { var chip = e.target.closest(".mood-opt"); if (!chip) return; document.querySelectorAll(".mood-opt").forEach(function(el) { el.classList.remove("selected"); }); chip.classList.add("selected"); });
+      attachGenreHandlers();
+
+      function addGenreChip(name) { if (!name) return; var exists = false; document.querySelectorAll(".genre-opt").forEach(function(g) { if (g.getAttribute("data-genre").toLowerCase() === name.toLowerCase()) exists = true; }); if (exists) return; var chip = document.createElement("div"); chip.className = "genre-opt"; chip.setAttribute("data-genre", name); chip.textContent = name; document.getElementById("genreSelector").appendChild(chip); attachGenreHandlers(); }
+
+      document.getElementById("btnAddGenre").addEventListener("click", function() { var val = document.getElementById("customGenreInput").value.trim(); if (!val) return; addGenreChip(val); var newChip = document.querySelector('.genre-opt[data-genre="' + val + '"]'); if (newChip) newChip.click(); document.getElementById("customGenreInput").value = ""; showToast("\ud83c\udff7\ufe0f G\u00e9nero '" + val + "' agregado"); });
+      document.getElementById("customGenreInput").addEventListener("keypress", function(e) { if (e.key === "Enter") { e.preventDefault(); document.getElementById("btnAddGenre").click(); } });
+
+      // === AUTO-FILL FROM TITLE ===
+      document.getElementById("btnAutoFill").addEventListener("click", function() {
+        var title = document.getElementById("fTitle").value.trim();
+        if (!title) { showToast("\u26a0\ufe0f Escribe un t\u00edtulo primero"); return; }
+        showToast("\ud83d\udd0d Buscando informaci\u00f3n...");
+        fetch("https://openlibrary.org/search.json?title=" + encodeURIComponent(title) + "&limit=5")
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (!data.docs || !data.docs.length) { showToast("\u274c No se encontr\u00f3 informaci\u00f3n"); return; }
+            if (data.docs.length === 1) { fillFromSearchResult(data.docs[0]); return; }
+            // Show picker with multiple results
+            window._searchResults = data.docs;
+            var html = "";
+            data.docs.forEach(function(doc, idx) {
+              var cover = doc.cover_i ? "https://covers.openlibrary.org/b/id/" + doc.cover_i + "-S.jpg" : "";
+              html += '<div onclick="pickSearchResult(' + idx + ')" style="display:flex;gap:10px;align-items:center;padding:10px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer">';
+              html += '<div style="width:40px;height:55px;border-radius:6px;overflow:hidden;background:var(--scarlet-light);flex-shrink:0">' + (cover ? '<img src="' + cover + '" style="width:100%;height:100%;object-fit:cover">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center">\ud83d\udcda</div>') + '</div>';
+              html += '<div style="flex:1;min-width:0"><p style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + doc.title + '</p>';
+              html += '<p style="font-size:10px;color:var(--scarlet)">' + (doc.author_name ? doc.author_name[0] : "Autor desconocido") + '</p>';
+              html += '<p style="font-size:9px;color:var(--text-muted)">' + (doc.first_publish_year || "") + (doc.publisher ? " \u00b7 " + doc.publisher[0] : "") + '</p></div></div>';
+            });
+            document.getElementById("bookPickerList").innerHTML = html;
+            document.getElementById("bookPickerModal").classList.add("show");
+          }).catch(function() { showToast("\u26a0\ufe0f Sin conexi\u00f3n"); });
+      });
+
+      window.pickSearchResult = function(idx) {
+        document.getElementById("bookPickerModal").classList.remove("show");
+        fillFromSearchResult(window._searchResults[idx]);
+      };
+
+      function fillFromSearchResult(book) {
+        if (book.title) document.getElementById("fTitle").value = book.title;
+        if (book.author_name && book.author_name[0]) document.getElementById("fAuthor").value = book.author_name[0];
+        if (book.first_publish_year) document.getElementById("fYear").value = book.first_publish_year;
+        if (book.number_of_pages_median) document.getElementById("fPages").value = book.number_of_pages_median;
+        if (book.publisher && book.publisher[0]) document.getElementById("fPublisher").value = book.publisher[0];
+        if (book.isbn && book.isbn[0]) document.getElementById("fIsbn").value = book.isbn[0];
+        if (book.cover_i) { selectedCover = "https://covers.openlibrary.org/b/id/" + book.cover_i + "-L.jpg"; document.getElementById("coverPreview").innerHTML = '<img src="' + selectedCover + '">'; }
+        if (book.subject) {
+          var subjectMap = {"fiction":"Ficci\u00f3n","fantasy":"Fantas\u00eda","science fiction":"Ciencia Ficci\u00f3n","romance":"Romance","horror":"Terror","mystery":"Misterio","history":"Historia","biography":"Biograf\u00eda","self-help":"Autoayuda","poetry":"Poes\u00eda","children":"Infantil","comics":"C\u00f3mic/Manga","manga":"C\u00f3mic/Manga","thriller":"Misterio","nonfiction":"No Ficci\u00f3n","non-fiction":"No Ficci\u00f3n","programming":"T\u00e9cnico","technology":"T\u00e9cnico"};
+          selectedGenres = []; var subjects = book.subject.slice(0, 10).map(function(s) { return s.toLowerCase(); });
+          subjects.forEach(function(s) { Object.keys(subjectMap).forEach(function(key) { if (s.indexOf(key) !== -1 && selectedGenres.indexOf(subjectMap[key]) === -1) selectedGenres.push(subjectMap[key]); }); });
+          if (!selectedGenres.length && book.subject.length) { addGenreChip(book.subject[0]); selectedGenres.push(book.subject[0]); }
+          selectedGenres.forEach(function(g) { addGenreChip(g); });
+          document.getElementById("fGenre").value = selectedGenres.join(", ");
+          document.querySelectorAll(".genre-opt").forEach(function(g) { g.classList.toggle("selected", selectedGenres.indexOf(g.getAttribute("data-genre")) !== -1); });
+          autoDetectMood(book.subject);
+        }
+        if (book.series && book.series.length) document.getElementById("fSaga").value = book.series[0];
+        showToast("\u2705 Informaci\u00f3n completada");
+      }
+
+      // === AUTO-FILL FROM ISBN ===
+      document.getElementById("btnIsbnFill").addEventListener("click", function() {
+        var isbn = document.getElementById("fIsbn").value.trim().replace(/[-\s]/g, "");
+        if (!isbn) { showToast("\u26a0\ufe0f Escribe un ISBN primero"); return; }
+        showToast("\ud83d\udd0d Buscando por ISBN...");
+        fetch("https://openlibrary.org/api/books?bibkeys=ISBN:" + isbn + "&format=json&jscmd=data")
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            var key = "ISBN:" + isbn;
+            if (!data[key]) { showToast("\u274c ISBN no encontrado"); return; }
+            var book = data[key];
+            if (book.title) document.getElementById("fTitle").value = book.title;
+            if (book.authors && book.authors[0]) document.getElementById("fAuthor").value = book.authors[0].name;
+            if (book.publish_date) { var m = book.publish_date.match(/\d{4}/); if (m) document.getElementById("fYear").value = m[0]; }
+            if (book.number_of_pages) document.getElementById("fPages").value = book.number_of_pages;
+            if (book.publishers && book.publishers[0]) document.getElementById("fPublisher").value = book.publishers[0].name;
+            if (book.cover && book.cover.large) { selectedCover = book.cover.large; document.getElementById("coverPreview").innerHTML = '<img src="' + selectedCover + '">'; }
+            if (book.subjects) {
+              var subjectMap2 = {"fiction":"Ficci\u00f3n","fantasy":"Fantas\u00eda","science fiction":"Ciencia Ficci\u00f3n","romance":"Romance","horror":"Terror","mystery":"Misterio","history":"Historia","biography":"Biograf\u00eda","self-help":"Autoayuda","poetry":"Poes\u00eda","children":"Infantil","comics":"C\u00f3mic/Manga","manga":"C\u00f3mic/Manga","thriller":"Misterio","nonfiction":"No Ficci\u00f3n","programming":"T\u00e9cnico","technology":"T\u00e9cnico"};
+              selectedGenres = []; book.subjects.slice(0,10).forEach(function(s) { var sl = (s.name || s).toLowerCase(); Object.keys(subjectMap2).forEach(function(k) { if (sl.indexOf(k) !== -1 && selectedGenres.indexOf(subjectMap2[k]) === -1) selectedGenres.push(subjectMap2[k]); }); });
+              if (selectedGenres.length) { document.getElementById("fGenre").value = selectedGenres.join(", "); document.querySelectorAll(".genre-opt").forEach(function(g) { g.classList.toggle("selected", selectedGenres.indexOf(g.getAttribute("data-genre")) !== -1); }); }
+            }
+            if (book.series) { document.getElementById("fSaga").value = book.series.map(function(s) { return s.name || s; }).join(", "); }
+            // Auto-detect mood
+            if (book.subjects) { autoDetectMood(book.subjects.map(function(s) { return s.name || s; })); }
+            // Show format picker
+            document.getElementById("formatPickerModal").classList.add("show");
+            showToast("\u2705 Info completada - elige formato");
+          }).catch(function() { showToast("\u26a0\ufe0f Sin conexi\u00f3n"); });
+      });
+
+      // === BARCODE SCANNER ===
+      var scannerStream = null;
+      document.getElementById("btnScanIsbn").addEventListener("click", function() { document.getElementById("scannerModal").classList.add("show"); document.getElementById("scannerChoices").style.display = "block"; document.getElementById("scannerLive").style.display = "none"; });
+      document.getElementById("btnScanLive").addEventListener("click", function() {
+        document.getElementById("scannerChoices").style.display = "none"; document.getElementById("scannerLive").style.display = "block"; document.getElementById("scannerStatus").textContent = "Iniciando c\u00e1mara...";
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { document.getElementById("scannerStatus").textContent = "\u274c C\u00e1mara no soportada"; return; }
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
+          scannerStream = stream; var video = document.getElementById("scannerVideo"); video.srcObject = stream; document.getElementById("scannerStatus").textContent = "\ud83d\udcf7 Buscando c\u00f3digo...";
+          if ("BarcodeDetector" in window) { var detector = new BarcodeDetector({ formats: ["ean_13", "ean_8", "upc_a", "upc_e"] }); var si = setInterval(function() { detector.detect(video).then(function(barcodes) { if (barcodes.length > 0) { clearInterval(si); document.getElementById("fIsbn").value = barcodes[0].rawValue; stopScanner(); document.getElementById("scannerModal").classList.remove("show"); document.getElementById("btnIsbnFill").click(); showToast("\ud83d\udcf7 ISBN: " + barcodes[0].rawValue); } }).catch(function(){}); }, 500); }
+          else { document.getElementById("scannerStatus").textContent = "\u26a0\ufe0f Detecci\u00f3n no disponible. Usa Capturar."; }
+        }).catch(function() { document.getElementById("scannerStatus").textContent = "\u274c Sin acceso a c\u00e1mara"; });
+      });
+      document.getElementById("btnScanPhoto").addEventListener("click", function() { document.getElementById("isbnPhotoFile").click(); });
+      document.getElementById("isbnPhotoFile").addEventListener("change", function(e) { var file = e.target.files[0]; if (!file) return; document.getElementById("scannerModal").classList.remove("show"); showToast("\ud83d\udcf8 Analizando foto..."); if ("BarcodeDetector" in window) { createImageBitmap(file).then(function(img) { return new BarcodeDetector({ formats: ["ean_13", "ean_8", "upc_a", "upc_e"] }).detect(img); }).then(function(barcodes) { if (barcodes.length > 0) { document.getElementById("fIsbn").value = barcodes[0].rawValue; document.getElementById("btnIsbnFill").click(); showToast("\ud83d\udcf7 ISBN: " + barcodes[0].rawValue); } else { showToast("\u274c No se detect\u00f3 c\u00f3digo"); } }).catch(function() { showToast("\u274c Error al leer"); }); } else { showToast("\u26a0\ufe0f Detecci\u00f3n no disponible"); } });
+      document.getElementById("btnScanCapture").addEventListener("click", function() { var video = document.getElementById("scannerVideo"); var canvas = document.getElementById("scannerCanvas"); if (!video.srcObject) { showToast("\u26a0\ufe0f C\u00e1mara no activa"); return; } canvas.width = video.videoWidth; canvas.height = video.videoHeight; canvas.getContext("2d").drawImage(video, 0, 0); document.getElementById("scannerStatus").textContent = "\ud83d\udcf8 Analizando..."; if ("BarcodeDetector" in window) { createImageBitmap(canvas).then(function(img) { return new BarcodeDetector({ formats: ["ean_13", "ean_8", "upc_a", "upc_e"] }).detect(img); }).then(function(barcodes) { if (barcodes.length > 0) { document.getElementById("fIsbn").value = barcodes[0].rawValue; stopScanner(); document.getElementById("scannerModal").classList.remove("show"); document.getElementById("btnIsbnFill").click(); showToast("\ud83d\udcf7 ISBN: " + barcodes[0].rawValue); } else { document.getElementById("scannerStatus").textContent = "\u274c No detectado. Acerca m\u00e1s."; } }).catch(function() { document.getElementById("scannerStatus").textContent = "\u274c Error"; }); } });
+      function stopScanner() { if (scannerStream) { scannerStream.getTracks().forEach(function(t) { t.stop(); }); scannerStream = null; } }
+      document.getElementById("btnScannerClose").addEventListener("click", function() { stopScanner(); document.getElementById("scannerModal").classList.remove("show"); });
+
+      // === POST-SAVE ===
+      document.getElementById("btnAddAnother").addEventListener("click", function() { document.getElementById("postSaveOptions").style.display = "none"; });
+      document.getElementById("btnGoHome").addEventListener("click", function() { document.getElementById("postSaveOptions").style.display = "none"; showSection("reading"); });
+      document.getElementById("btnExportDash").addEventListener("click", function() { exportDash(); });
+      document.getElementById("btnExportSpend").addEventListener("click", function() { exportDash(); });
+
+      // === LOGOUT ===
+      function doLogout() { try { localStorage.removeItem("biblio_current_user"); } catch(e) {} currentUser = null; document.getElementById("authUser").value = ""; document.getElementById("authPass").value = ""; checkAuth(); }
+      window.doLogout = doLogout;
+
+      // === INIT CUSTOM GENRES ===
+      function initCustomGenres() { books.forEach(function(b) { if (b.genre) { b.genre.split(", ").forEach(function(g) { if (g) addGenreChip(g); }); } }); }
+      initCustomGenres();
+
+
+
+      // === EDIT/DELETE FROM DETAIL ===
+      window.editBookFromDetail = function(id) {
+        document.getElementById("bookDetailModal").classList.remove("show");
         var b = books.find(function(x) { return x.id === id; });
         if (!b) return;
         editingId = id;
-        document.getElementById("fTitle").value = b.title;
-        document.getElementById("fAuthor").value = b.author;
-        document.getElementById("fGenre").value = b.genre || "";
-        selectedGenres = (b.genre || "").split(", ").filter(function(g) { return g; });
-        selectedGenres.forEach(function(g) { addGenreChip(g); });
-        document.querySelectorAll(".genre-opt").forEach(function(g) {
-          g.classList.toggle("selected", selectedGenres.indexOf(g.getAttribute("data-genre")) !== -1);
-        });
+        document.getElementById("fTitle").value = b.title || "";
+        document.getElementById("fAuthor").value = b.author || "";
+        document.getElementById("fSaga").value = b.saga || "";
         document.getElementById("fYear").value = b.year || "";
         document.getElementById("fPages").value = b.pages || "";
         document.getElementById("fPrice").value = b.price || "";
@@ -978,531 +910,70 @@ function markAsRead(id) {
         document.getElementById("fDateEnd").value = b.dateEnd || "";
         document.getElementById("fPublisher").value = b.publisher || "";
         document.getElementById("fStore").value = b.store || "";
-        document.getElementById("fSaga").value = b.saga || "";
-        document.querySelectorAll(".mood-opt").forEach(function(el) { el.classList.remove("selected"); if (b.mood && el.getAttribute("data-mood") === b.mood) el.classList.add("selected"); });
         document.getElementById("fIsbn").value = b.isbn || "";
         document.getElementById("fNotes").value = b.notes || "";
-        if (b.format) {
-          document.querySelectorAll(".format-opt").forEach(function(e) { e.classList.toggle("selected", e.getAttribute("data-val") === b.format); });
-          selectedFormat = b.format;
-        }
+        if (b.genre) { selectedGenres = b.genre.split(", ").filter(function(g){return g;}); document.getElementById("fGenre").value = b.genre; document.querySelectorAll(".genre-opt").forEach(function(g) { g.classList.toggle("selected", selectedGenres.indexOf(g.getAttribute("data-genre")) !== -1); }); }
+        if (b.mood) { document.querySelectorAll(".mood-opt").forEach(function(el) { el.classList.remove("selected"); if (el.getAttribute("data-mood") === b.mood) el.classList.add("selected"); }); }
+        if (b.format) { document.querySelectorAll(".format-opt").forEach(function(e) { e.classList.toggle("selected", e.getAttribute("data-val") === b.format); }); selectedFormat = b.format; }
         if (b.cover) { selectedCover = b.cover; document.getElementById("coverPreview").innerHTML = '<img src="' + b.cover + '">'; }
         convertCurrency();
         document.getElementById("btnCancel").style.display = "block";
         document.getElementById("btnSave").innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Actualizar Libro';
         showSection("add");
-        showToast("✏️ Editando - Pulsa Cancelar para descartar");
-      }
+        showToast("\u270f\ufe0f Editando: " + b.title);
+      };
 
-      // === DASHBOARDS ===
+      window.deleteBookFromDetail = function(id) {
+        if (confirm("\u00bfEliminar este libro?")) {
+          books = books.filter(function(b) { return b.id !== id; });
+          saveBooks();
+          document.getElementById("bookDetailModal").classList.remove("show");
+          updateStats(); renderReading();
+          showToast("\ud83d\uddd1\ufe0f Libro eliminado");
+        }
+      };
 
-      function renderSimpleBar(containerId, data, color) {
-        var el = document.getElementById(containerId);
-        if (!el || !data.length) { if(el) el.innerHTML = '<div class="empty"><i class="fa-solid fa-chart-bar"></i><p>Sin datos</p></div>'; return; }
-        var max = Math.max.apply(null, data.map(function(d) { return d.value; }));
-        var html = '<div style="padding:8px">';
-        data.forEach(function(d) {
-          var pct = max > 0 ? (d.value / max * 100) : 0;
-          html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">';
-          html += '<span style="font-size:10px;color:var(--text-sec);min-width:70px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + d.name + '</span>';
-          html += '<div style="flex:1;height:18px;background:var(--border);border-radius:4px;overflow:hidden">';
-          html += '<div style="height:100%;width:' + pct + '%;background:' + (d.color || color || 'var(--scarlet)') + ';border-radius:4px;transition:width .3s"></div>';
-          html += '</div>';
-          html += '<span style="font-size:10px;font-weight:600;color:var(--text);min-width:20px">' + d.value + '</span>';
-          html += '</div>';
-        });
-        html += '</div>';
-        el.innerHTML = html;
-      }
-
-      function renderSimplePie(containerId, data) {
-        var el = document.getElementById(containerId);
-        if (!el || !data.length) { if(el) el.innerHTML = '<div class="empty"><i class="fa-solid fa-chart-pie"></i><p>Sin datos</p></div>'; return; }
-        var total = data.reduce(function(s, d) { return s + d.value; }, 0);
-        if (total === 0) { el.innerHTML = '<div class="empty"><p>Sin datos</p></div>'; return; }
-        var size = 180, cx = size/2, cy = size/2, r = 70, ri = 40;
-        var svg = '<svg viewBox="0 0 ' + size + ' ' + size + '" style="max-width:200px;margin:0 auto;display:block">';
-        var angle = -90;
-        data.forEach(function(d) {
-          var pct = d.value / total;
-          var a1 = angle * Math.PI / 180;
-          var a2 = (angle + pct * 360) * Math.PI / 180;
-          var large = pct > 0.5 ? 1 : 0;
-          var x1o = cx + r * Math.cos(a1), y1o = cy + r * Math.sin(a1);
-          var x2o = cx + r * Math.cos(a2), y2o = cy + r * Math.sin(a2);
-          var x1i = cx + ri * Math.cos(a2), y1i = cy + ri * Math.sin(a2);
-          var x2i = cx + ri * Math.cos(a1), y2i = cy + ri * Math.sin(a1);
-          var path = 'M' + x1o + ',' + y1o + ' A' + r + ',' + r + ' 0 ' + large + ' 1 ' + x2o + ',' + y2o;
-          path += ' L' + x1i + ',' + y1i + ' A' + ri + ',' + ri + ' 0 ' + large + ' 0 ' + x2i + ',' + y2i + ' Z';
-          svg += '<path d="' + path + '" fill="' + (d.color || '#6b7280') + '"/>';
-          angle += pct * 360;
-        });
-        svg += '</svg>';
-        var legend = '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:8px">';
-        data.forEach(function(d) {
-          legend += '<span style="font-size:9px;display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:' + (d.color || '#6b7280') + ';display:inline-block"></span>' + d.name + ' (' + d.value + ')</span>';
-        });
-        legend += '</div>';
-        el.innerHTML = svg + legend;
-      }
-
-      function renderDashboards() {
-        if (!books.length) return;
-        var gD = {}; books.forEach(function(b) { if (b.genre) gD[b.genre] = (gD[b.genre] || 0) + 1; });
-        renderSimplePie("chartGenre", Object.keys(gD).map(function(n) { return { name: n, value: gD[n], color: genreColors[n] || "#6b7280" }; }));
-        var aD = {}; books.forEach(function(b) { if(b.author) aD[b.author] = (aD[b.author] || 0) + 1; });
-        var tA = Object.keys(aD).map(function(k) { return { name: k, value: aD[k] }; }).sort(function(a, b) { return b.value - a.value; }).slice(0, 8);
-        renderSimpleBar("chartAuthor", tA, "#dc2626");
-        var moodData = {}; books.forEach(function(b) { if (b.mood) { var m = b.mood.split(" ")[0]; moodData[b.mood] = (moodData[b.mood] || 0) + 1; } });
-        var moodColors = {"😊 Feliz":"#f59e0b","😢 Triste":"#3b82f6","😱 Tenso":"#ef4444","🤔 Reflexivo":"#8b5cf6","😍 Romántico":"#ec4899","😂 Divertido":"#10b981","😴 Relajante":"#06b6d4","🤯 Impactante":"#f97316","💪 Motivante":"#047857"};
-        renderSimplePie("chartMood", Object.keys(moodData).map(function(n) { return { name: n, value: moodData[n], color: moodColors[n] || "#6b7280" }; }));
-        var fD = {}; books.forEach(function(b) { if (b.format) fD[b.format] = (fD[b.format] || 0) + 1; });
-        renderSimpleBar("chartFormat", Object.keys(fD).map(function(k) { return { name: k, value: fD[k] }; }), "#b45309");
-        var mD = {}; books.forEach(function(b) { if (b.dateEnd) { var m = b.dateEnd.substring(0, 7); mD[m] = (mD[m] || 0) + 1; } });
-        var sM = Object.keys(mD).sort();
-        renderSimpleBar("chartTimeline", sM.map(function(m) { var p = m.split("-"); return { name: p[1] + "/" + p[0].slice(2), value: mD[m] }; }), "#dc2626");
-        var stD = {}; books.forEach(function(b) { if (b.store) stD[b.store] = (stD[b.store] || 0) + 1; });
-        var tS = Object.keys(stD).map(function(k) { return { name: k, value: stD[k] }; }).sort(function(a, b) { return b.value - a.value; }).slice(0, 8);
-        renderSimpleBar("chartStore", tS, "#b45309");
-      }
-
-      function renderSpending() {
-        var wp = books.filter(function(b) { return b.price > 0; });
-        var tU = 0, tH = 0, tE = 0;
-        wp.forEach(function(b) { tU += (b.priceUSD || 0); tH += (b.priceHNL || 0); tE += (b.priceEUR || 0); });
-        document.getElementById("totalSpentUSD").textContent = "$" + tU.toFixed(2) + " USD";
-        document.getElementById("totalSpentHNL").textContent = "L " + tH.toFixed(2) + " HNL";
-        document.getElementById("totalSpentEUR").textContent = "€" + tE.toFixed(2) + " EUR";
-        document.getElementById("spentCount").textContent = wp.length;
-        var mS = {}; wp.forEach(function(b) { if (b.datePurchase) { var m = b.datePurchase.substring(0, 7); mS[m] = (mS[m] || 0) + (b.priceUSD || 0); } });
-        var sM2 = Object.keys(mS).sort();
-        renderSimpleBar("chartSpendMonth", sM2.map(function(m) { var p = m.split("-"); return { name: p[1] + "/" + p[0].slice(2), value: Math.round(mS[m]) }; }), "#dc2626");
-        var gS = {}; wp.forEach(function(b) { if (b.genre) gS[b.genre] = (gS[b.genre] || 0) + (b.priceUSD || 0); });
-        renderSimpleBar("chartSpendGenre", Object.keys(gS).map(function(g) { return { name: g, value: Math.round(gS[g]), color: genreColors[g] }; }).sort(function(a,b){return b.value-a.value;}), "#b45309");
-        var fS = {}; wp.forEach(function(b) { if (b.format) fS[b.format] = (fS[b.format] || 0) + (b.priceUSD || 0); });
-        renderSimpleBar("chartSpendFormat", Object.keys(fS).map(function(f) { return { name: f, value: Math.round(fS[f]) }; }), "#7c3aed");
-        var stS = {}; wp.forEach(function(b) { if (b.store) stS[b.store] = (stS[b.store] || 0) + (b.priceUSD || 0); });
-        renderSimpleBar("chartSpendStore", Object.keys(stS).map(function(s) { return { name: s, value: Math.round(stS[s]) }; }).sort(function(a,b){return b.value-a.value;}).slice(0,8), "#047857");
-      }
-
-      function exportDash() {
-        showToast("Usa captura de pantalla para exportar");
-      }
-
+      // === BOOK PICKER (Title Search - 5 results) ===
+      document.getElementById("btnCloseBookPicker").addEventListener("click", function() { document.getElementById("bookPickerModal").classList.remove("show"); });
       
-
-      // === STATS ===
-      function updateStats() {
-        document.getElementById("statBooks").textContent = books.length;
-        document.getElementById("statRead").textContent = books.filter(function(b) { return b.status === "Leído"; }).length;
-        var u = 0, h = 0;
-        books.forEach(function(b) { u += (b.priceUSD || 0); h += (b.priceHNL || 0); });
-        var totalPgs = books.filter(function(b) { return b.status === "Leído"; }).reduce(function(s,b) { return s + (parseInt(b.pages) || 0); }, 0);
-        document.getElementById("statPages").textContent = totalPgs > 999 ? (totalPgs/1000).toFixed(1) + "k" : totalPgs;
-        document.getElementById("statSpent").textContent = u.toFixed(0);
-        document.getElementById("statSpentL").textContent = h.toFixed(0);
+      // === FORMAT PICKER (ISBN) ===
+      document.getElementById("btnFmtHard").addEventListener("click", function() { selectFormatFromPicker("Tapa dura"); });
+      document.getElementById("btnFmtSoft").addEventListener("click", function() { selectFormatFromPicker("Tapa blanda"); });
+      document.getElementById("btnFmtSkip").addEventListener("click", function() { document.getElementById("formatPickerModal").classList.remove("show"); });
+      function selectFormatFromPicker(fmt) {
+        document.querySelectorAll("#formatOptions .format-opt").forEach(function(e) { e.classList.remove("selected"); if (e.getAttribute("data-val") === fmt) { e.classList.add("selected"); selectedFormat = fmt; } });
+        document.getElementById("formatPickerModal").classList.remove("show");
+        showToast("\u2705 Formato: " + fmt);
       }
 
-      function showToast(m) {
-        var t = document.getElementById("toast");
-        t.textContent = m;
-        t.classList.add("show");
-        setTimeout(function() { t.classList.remove("show"); }, 2500);
-      }
-
-      // Cover/image buttons
-
-
-      document.getElementById("btnUploadCover").addEventListener("click", function() { document.getElementById("coverFile").click(); });
-      document.getElementById("coverFile").addEventListener("change", function(e) {
-        var f = e.target.files[0]; if (!f) return;
-        if (!f.type.startsWith("image/")) { showToast("⚠️ Solo imágenes"); return; }
-        if (f.size > 5242880) { showToast("⚠️ Máx 5MB"); return; }
-        try {
-          var r = new FileReader();
-          r.onload = function(ev) { selectedCover = ev.target.result; document.getElementById("coverPreview").innerHTML = '<img src="' + ev.target.result + '">'; showToast("🖼️ Imagen cargada"); };
-          r.onerror = function() { showToast("❌ Error al leer imagen"); };
-          r.readAsDataURL(f);
-        } catch(err) { showToast("❌ No se pudo cargar"); }
-      });
-
-      // Cancel edit button
-      document.getElementById("btnCancel").addEventListener("click", function() {
-        editingId = null;
-        clearForm();
-        document.getElementById("btnCancel").style.display = "none";
-        document.getElementById("btnSave").innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Libro';
-        showSection("reading");
-        showToast("❌ Edición cancelada");
-      });
-
-      // Cover URL live preview
-
-      
-      // === MULTI-GENRE SELECTION ===
-      function attachGenreHandlers() {
-        document.querySelectorAll(".genre-opt").forEach(function(el) {
-          el.onclick = function() {
-            if (el.id === "genreOtro") {
-              var row = document.getElementById("customGenreRow");
-              row.style.display = row.style.display === "flex" ? "none" : "flex";
-              document.getElementById("customGenreInput").focus();
-              return;
-            }
-            el.classList.toggle("selected");
-            selectedGenres = [];
-            document.querySelectorAll(".genre-opt.selected").forEach(function(g) {
-              selectedGenres.push(g.getAttribute("data-genre"));
-            });
-            document.getElementById("fGenre").value = selectedGenres.join(", ");
-          };
-        });
-      }
-
-      // Mood chip handler
-      document.getElementById("moodSelector").addEventListener("click", function(e) {
-        var chip = e.target.closest(".mood-opt");
-        if (!chip) return;
-        // Only one mood at a time - deselect others
-        document.querySelectorAll(".mood-opt").forEach(function(el) { el.classList.remove("selected"); });
-        chip.classList.add("selected");
-      });
-      attachGenreHandlers();
-
-      function addGenreChip(name) {
-        if (!name) return;
-        // Check if already exists
-        var exists = false;
-        document.querySelectorAll(".genre-opt").forEach(function(g) {
-          if (g.getAttribute("data-genre").toLowerCase() === name.toLowerCase()) exists = true;
-        });
-        if (exists) return;
-        var chip = document.createElement("div");
-        chip.className = "genre-opt";
-        chip.setAttribute("data-genre", name);
-        chip.textContent = name;
-        document.getElementById("genreSelector").appendChild(chip);
-        attachGenreHandlers();
-      }
-
-      document.getElementById("btnAddGenre").addEventListener("click", function() {
-        var val = document.getElementById("customGenreInput").value.trim();
-        if (!val) return;
-        addGenreChip(val);
-        // Select it immediately
-        var newChip = document.querySelector('.genre-opt[data-genre="' + val + '"]');
-        if (newChip) newChip.click();
-        document.getElementById("customGenreInput").value = "";
-        showToast("🏷️ Género '" + val + "' agregado");
-      });
-
-      document.getElementById("customGenreInput").addEventListener("keypress", function(e) {
-        if (e.key === "Enter") { e.preventDefault(); document.getElementById("btnAddGenre").click(); }
-      });
-
-// === AUTO-FILL FROM TITLE ===
-      document.getElementById("btnAutoFill").addEventListener("click", function() {
-        var title = document.getElementById("fTitle").value.trim();
-        if (!title) { showToast("⚠️ Escribe un título primero"); return; }
-        showToast("🔍 Buscando información...");
-        fetch("https://openlibrary.org/search.json?title=" + encodeURIComponent(title) + "&limit=1")
-          .then(function(r) { return r.json(); })
-          .then(function(data) {
-            if (!data.docs || !data.docs.length) { showToast("❌ No se encontró información"); return; }
-            var book = data.docs[0];
-            if (book.author_name && book.author_name[0]) document.getElementById("fAuthor").value = book.author_name[0];
-            if (book.first_publish_year) document.getElementById("fYear").value = book.first_publish_year;
-            if (book.number_of_pages_median) document.getElementById("fPages").value = book.number_of_pages_median;
-            if (book.publisher && book.publisher[0]) document.getElementById("fPublisher").value = book.publisher[0];
-            if (book.isbn && book.isbn[0]) document.getElementById("fIsbn").value = book.isbn[0];
-            if (book.cover_i) {
-              selectedCover = "https://covers.openlibrary.org/b/id/" + book.cover_i + "-L.jpg";
-              document.getElementById("coverPreview").innerHTML = '<img src="' + selectedCover + '">';
-            }
-            // Try to match genres from subjects
-            if (book.subject) {
-              var subjectMap = {
-                "fiction": "Ficción", "fantasy": "Fantasía", "science fiction": "Ciencia Ficción",
-                "romance": "Romance", "horror": "Terror", "mystery": "Misterio",
-                "history": "Historia", "biography": "Biografía", "self-help": "Autoayuda",
-                "poetry": "Poesía", "children": "Infantil", "comics": "Cómic/Manga",
-                "manga": "Cómic/Manga", "thriller": "Misterio", "nonfiction": "No Ficción",
-                "non-fiction": "No Ficción", "programming": "Técnico", "technology": "Técnico"
-              };
-              selectedGenres = [];
-              var subjects = book.subject.slice(0, 10).map(function(s) { return s.toLowerCase(); });
-              subjects.forEach(function(s) {
-                Object.keys(subjectMap).forEach(function(key) {
-                  if (s.indexOf(key) !== -1 && selectedGenres.indexOf(subjectMap[key]) === -1) {
-                    selectedGenres.push(subjectMap[key]);
-                  }
-                });
-              });
-              // If no mapped genre found, use first subject as custom genre
-              if (!selectedGenres.length && book.subject.length) {
-                var customGenre = book.subject[0];
-                addGenreChip(customGenre);
-                selectedGenres.push(customGenre);
-              }
-              // Add genre chips if they don't exist and select them
-              selectedGenres.forEach(function(g) { addGenreChip(g); });
-              document.getElementById("fGenre").value = selectedGenres.join(", ");
-              document.querySelectorAll(".genre-opt").forEach(function(g) {
-                g.classList.toggle("selected", selectedGenres.indexOf(g.getAttribute("data-genre")) !== -1);
-              });
-            }
-            // Auto-detect mood from subjects
-            if (book.subjects) {
-              var subStr = book.subjects.map(function(s) { return (s.name || s).toLowerCase(); }).join(" ");
-              var moodMap = [
-                {keywords: ["romance","love","passion"], mood: "😍 Romántico"},
-                {keywords: ["thriller","suspense","mystery","crime"], mood: "😱 Tenso"},
-                {keywords: ["humor","comedy","funny","comic"], mood: "😂 Divertido"},
-                {keywords: ["philosophy","psychology","self-help","think"], mood: "🤔 Reflexivo"},
-                {keywords: ["horror","dark","death","grief","sad","tragedy"], mood: "😢 Triste"},
-                {keywords: ["adventure","fantasy","epic","hero"], mood: "😊 Feliz"},
-                {keywords: ["motivation","success","business","leadership"], mood: "💪 Motivante"},
-                {keywords: ["science fiction","dystop","future","space"], mood: "🤯 Impactante"},
-                {keywords: ["meditation","mindful","calm","relax"], mood: "😴 Relajante"}
-              ];
-              for (var mi = 0; mi < moodMap.length; mi++) {
-                var found = moodMap[mi].keywords.some(function(k) { return subStr.indexOf(k) !== -1; });
-                if (found) {
-                  document.querySelectorAll(".mood-opt").forEach(function(el) { el.classList.remove("selected"); if (el.getAttribute("data-mood") === moodMap[mi].mood) el.classList.add("selected"); });
-                  break;
-                }
-              }
-            }
-            // Auto-fill saga from title search
-            if (book.series && book.series.length) {
-              document.getElementById("fSaga").value = book.series[0];
-            }
-            showToast("✅ Información completada");
-          })
-          .catch(function() { showToast("⚠️ Sin conexión"); });
-      });
-
-      // === AUTO-FILL FROM ISBN ===
-      document.getElementById("btnIsbnFill").addEventListener("click", function() {
-        var isbn = document.getElementById("fIsbn").value.trim().replace(/[-\s]/g, "");
-        if (!isbn) { showToast("⚠️ Escribe un ISBN primero"); return; }
-        showToast("🔍 Buscando por ISBN...");
-        fetch("https://openlibrary.org/api/books?bibkeys=ISBN:" + isbn + "&format=json&jscmd=data")
-          .then(function(r) { return r.json(); })
-          .then(function(data) {
-            var key = "ISBN:" + isbn;
-            if (!data[key]) { showToast("❌ ISBN no encontrado"); return; }
-            var book = data[key];
-            if (book.title) document.getElementById("fTitle").value = book.title;
-            if (book.authors && book.authors[0]) document.getElementById("fAuthor").value = book.authors[0].name;
-            if (book.publish_date) document.getElementById("fYear").value = book.publish_date.match(/\d{4}/) ? book.publish_date.match(/\d{4}/)[0] : book.publish_date;
-            if (book.number_of_pages) document.getElementById("fPages").value = book.number_of_pages;
-            if (book.publishers && book.publishers[0]) document.getElementById("fPublisher").value = book.publishers[0].name;
-            if (book.cover && book.cover.large) {
-              selectedCover = book.cover.large;
-              document.getElementById("coverPreview").innerHTML = '<img src="' + selectedCover + '">';
-            }
-            // Auto-detect mood from subjects (ISBN)
-            if (book.subjects) {
-              var subStr = book.subjects.map(function(s) { return (s.name || s).toLowerCase(); }).join(" ");
-              var moodMap = [
-                {keywords: ["romance","love","passion"], mood: "😍 Romántico"},
-                {keywords: ["thriller","suspense","mystery","crime"], mood: "😱 Tenso"},
-                {keywords: ["humor","comedy","funny","comic"], mood: "😂 Divertido"},
-                {keywords: ["philosophy","psychology","self-help","think"], mood: "🤔 Reflexivo"},
-                {keywords: ["horror","dark","death","grief","sad","tragedy"], mood: "😢 Triste"},
-                {keywords: ["adventure","fantasy","epic","hero"], mood: "😊 Feliz"},
-                {keywords: ["motivation","success","business","leadership"], mood: "💪 Motivante"},
-                {keywords: ["science fiction","dystop","future","space"], mood: "🤯 Impactante"},
-                {keywords: ["meditation","mindful","calm","relax"], mood: "😴 Relajante"}
-              ];
-              for (var mi = 0; mi < moodMap.length; mi++) {
-                var found = moodMap[mi].keywords.some(function(k) { return subStr.indexOf(k) !== -1; });
-                if (found) {
-                  document.querySelectorAll(".mood-opt").forEach(function(el) { el.classList.remove("selected"); if (el.getAttribute("data-mood") === moodMap[mi].mood) el.classList.add("selected"); });
-                  break;
-                }
-              }
-              // Auto-fill genres from ISBN subjects
-              var subjectMap2 = {"fiction":"Ficción","fantasy":"Fantasía","science fiction":"Ciencia Ficción","romance":"Romance","horror":"Terror","mystery":"Misterio","history":"Historia","biography":"Biografía","self-help":"Autoayuda","poetry":"Poesía","children":"Infantil","comics":"Cómic/Manga","manga":"Cómic/Manga","thriller":"Misterio","nonfiction":"No Ficción","programming":"Técnico","technology":"Técnico"};
-              selectedGenres = [];
-              book.subjects.slice(0,10).forEach(function(s) {
-                var sl = (s.name || s).toLowerCase();
-                Object.keys(subjectMap2).forEach(function(k) {
-                  if (sl.indexOf(k) !== -1 && selectedGenres.indexOf(subjectMap2[k]) === -1) selectedGenres.push(subjectMap2[k]);
-                });
-              });
-              if (selectedGenres.length) {
-                document.getElementById("fGenre").value = selectedGenres.join(", ");
-                document.querySelectorAll(".genre-opt").forEach(function(g) {
-                  g.classList.toggle("selected", selectedGenres.indexOf(g.getAttribute("data-genre")) !== -1);
-                });
-              }
-            }
-            // Auto-fill saga if series info available
-            if (book.series) {
-              var sagaText = book.series.map(function(s) { return s.name || s; }).join(", ");
-              document.getElementById("fSaga").value = sagaText;
-            }
-            showToast("✅ Información completada");
-          })
-          .catch(function() { showToast("⚠️ Sin conexión"); });
-      });
-
-      // === BARCODE SCANNER ===
-      var scannerStream = null;
-
-      document.getElementById("btnScanIsbn").addEventListener("click", function() {
-        document.getElementById("scannerModal").classList.add("show");
-        document.getElementById("scannerChoices").style.display = "block";
-        document.getElementById("scannerLive").style.display = "none";
-      });
-
-      document.getElementById("btnScanLive").addEventListener("click", function() {
-        document.getElementById("scannerChoices").style.display = "none";
-        document.getElementById("scannerLive").style.display = "block";
-        document.getElementById("scannerStatus").textContent = "Iniciando cámara...";
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          document.getElementById("scannerStatus").textContent = "❌ Cámara no soportada";
-          return;
-        }
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-          .then(function(stream) {
-            scannerStream = stream;
-            var video = document.getElementById("scannerVideo");
-            video.srcObject = stream;
-            document.getElementById("scannerStatus").textContent = "📷 Buscando código...";
-            if ("BarcodeDetector" in window) {
-              var detector = new BarcodeDetector({ formats: ["ean_13", "ean_8", "upc_a", "upc_e"] });
-              var scanInterval = setInterval(function() {
-                detector.detect(video).then(function(barcodes) {
-                  if (barcodes.length > 0) {
-                    clearInterval(scanInterval);
-                    var code = barcodes[0].rawValue;
-                    document.getElementById("fIsbn").value = code;
-                    stopScanner();
-                    document.getElementById("scannerModal").classList.remove("show");
-                    document.getElementById("btnIsbnFill").click();
-                    showToast("📷 ISBN: " + code);
-                  }
-                }).catch(function() {});
-              }, 500);
-            } else {
-              document.getElementById("scannerStatus").textContent = "⚠️ Detección no disponible. Usa Capturar.";
-            }
-          })
-          .catch(function() {
-            document.getElementById("scannerStatus").textContent = "❌ Sin acceso a cámara";
-          });
-      });
-
-      document.getElementById("btnScanPhoto").addEventListener("click", function() {
-        document.getElementById("isbnPhotoFile").click();
-      });
-
-      document.getElementById("isbnPhotoFile").addEventListener("change", function(e) {
-        var file = e.target.files[0];
-        if (!file) return;
-        document.getElementById("scannerModal").classList.remove("show");
-        showToast("📸 Analizando foto...");
-        if ("BarcodeDetector" in window) {
-          createImageBitmap(file).then(function(img) {
-            return new BarcodeDetector({ formats: ["ean_13", "ean_8", "upc_a", "upc_e"] }).detect(img);
-          }).then(function(barcodes) {
-            if (barcodes.length > 0) {
-              document.getElementById("fIsbn").value = barcodes[0].rawValue;
-              document.getElementById("btnIsbnFill").click();
-              showToast("📷 ISBN: " + barcodes[0].rawValue);
-            } else {
-              showToast("❌ No se detectó código en la foto");
-            }
-          }).catch(function() { showToast("❌ Error al leer"); });
-        } else {
-          showToast("⚠️ Detección no disponible");
-        }
-      });
-
-      document.getElementById("btnScanCapture").addEventListener("click", function() {
-        var video = document.getElementById("scannerVideo");
-        var canvas = document.getElementById("scannerCanvas");
-        if (!video.srcObject) { showToast("⚠️ Cámara no activa"); return; }
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext("2d").drawImage(video, 0, 0);
-        document.getElementById("scannerStatus").textContent = "📸 Analizando...";
-        if ("BarcodeDetector" in window) {
-          createImageBitmap(canvas).then(function(img) {
-            return new BarcodeDetector({ formats: ["ean_13", "ean_8", "upc_a", "upc_e"] }).detect(img);
-          }).then(function(barcodes) {
-            if (barcodes.length > 0) {
-              document.getElementById("fIsbn").value = barcodes[0].rawValue;
-              stopScanner();
-              document.getElementById("scannerModal").classList.remove("show");
-              document.getElementById("btnIsbnFill").click();
-              showToast("📷 ISBN: " + barcodes[0].rawValue);
-            } else {
-              document.getElementById("scannerStatus").textContent = "❌ No detectado. Acerca más.";
-            }
-          }).catch(function() { document.getElementById("scannerStatus").textContent = "❌ Error"; });
-        }
-      });
-
-      function stopScanner() {
-        if (scannerStream) {
-          scannerStream.getTracks().forEach(function(t) { t.stop(); });
-          scannerStream = null;
+      // === MOOD AUTO-DETECTION ===
+      function autoDetectMood(subjects) {
+        if (!subjects || !subjects.length) return;
+        var subStr = subjects.slice(0, 15).map(function(s) { return (typeof s === "string" ? s : s.name || "").toLowerCase(); }).join(" ");
+        var moodMap = [
+          {keywords: ["romance","love","passion"], mood: "\ud83d\ude0d Rom\u00e1ntico"},
+          {keywords: ["thriller","suspense","mystery","crime"], mood: "\ud83d\ude31 Tenso"},
+          {keywords: ["humor","comedy","funny","comic"], mood: "\ud83d\ude02 Divertido"},
+          {keywords: ["philosophy","psychology","self-help","think"], mood: "\ud83e\udd14 Reflexivo"},
+          {keywords: ["horror","dark","death","grief","sad","tragedy"], mood: "\ud83d\ude22 Triste"},
+          {keywords: ["adventure","fantasy","epic","hero","happy"], mood: "\ud83d\ude0a Feliz"},
+          {keywords: ["motivation","success","business","leadership"], mood: "\ud83d\udcaa Motivante"},
+          {keywords: ["science fiction","dystop","future","space"], mood: "\ud83e\udd2f Impactante"},
+          {keywords: ["meditation","mindful","calm","relax"], mood: "\ud83d\ude34 Relajante"}
+        ];
+        for (var i = 0; i < moodMap.length; i++) {
+          var found = moodMap[i].keywords.some(function(k) { return subStr.indexOf(k) !== -1; });
+          if (found) {
+            document.querySelectorAll(".mood-opt").forEach(function(el) { el.classList.remove("selected"); if (el.getAttribute("data-mood") === moodMap[i].mood) el.classList.add("selected"); });
+            return;
+          }
         }
       }
 
-      document.getElementById("btnScannerClose").addEventListener("click", function() {
-        stopScanner();
-        document.getElementById("scannerModal").classList.remove("show");
-      });
-      
-
-
-      // Post-save options
-      document.getElementById("btnAddAnother").addEventListener("click", function() {
-        document.getElementById("postSaveOptions").style.display = "none";
-      });
-      document.getElementById("btnGoHome").addEventListener("click", function() {
-        document.getElementById("postSaveOptions").style.display = "none";
-        showSection("reading");
-      });
-
-      // Export buttons
-      document.getElementById("btnExportDash").addEventListener("click", function() { exportDash(); });
-      document.getElementById("btnExportSpend").addEventListener("click", function() { exportDash(); });
-
-      // Logout function
-      function doLogout() {
-        try { localStorage.removeItem("biblio_current_user"); } catch(e) {}
-        currentUser = null;
-        document.getElementById("authUser").value = "";
-        document.getElementById("authPass").value = "";
-        checkAuth();
-      }
-      window.doLogout = doLogout;
-
-      // Init
-      updateStats();
-      updateDataLists();
-      renderReading();
+      // === INIT ===
+      updateStats(); updateDataLists(); renderReading();
 
     })();
   </script>
 </body>
-</html
-      // === INIT: Load custom genres from saved books ===
-      function initCustomGenres() {
-        books.forEach(function(b) {
-          if (b.genre) {
-            b.genre.split(", ").forEach(function(g) {
-              if (g) addGenreChip(g);
-            });
-          }
-        });
-      }
-      initCustomGenres();
-
->
+</html>
