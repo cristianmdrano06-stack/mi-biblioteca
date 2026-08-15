@@ -1,4 +1,4 @@
-var CACHE_NAME = "biblioteca-v2";
+var CACHE_NAME = "biblioteca-v3";
 var urlsToCache = ["./index.html", "./manifest.json"];
 
 self.addEventListener("install", function(event) {
