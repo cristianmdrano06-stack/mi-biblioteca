@@ -822,7 +822,25 @@
           document.querySelectorAll(".genre-opt").forEach(function(g) { g.classList.toggle("selected", selectedGenres.indexOf(g.getAttribute("data-genre")) !== -1); });
           autoDetectMood(book.subject);
         }
-        if (book.series && book.series.length) document.getElementById("fSaga").value = book.series[0];
+        if (book.series && book.series.length) {
+          document.getElementById("fSaga").value = book.series[0];
+        } else if (book.key) {
+          // Fetch work details to find series/saga info
+          fetch("https://openlibrary.org" + book.key + ".json")
+            .then(function(r) { return r.json(); })
+            .then(function(work) {
+              if (work.series && work.series.length) {
+                document.getElementById("fSaga").value = work.series.map(function(s) { return s || ""; }).join(", ");
+              } else if (work.subjects) {
+                // Look for saga/series names in subjects
+                var sagaKeywords = work.subjects.filter(function(s) {
+                  var sl = s.toLowerCase();
+                  return sl.indexOf("series") !== -1 || sl.indexOf("trilogy") !== -1 || sl.indexOf("saga") !== -1 || sl.indexOf("universe") !== -1 || sl.indexOf("verse") !== -1;
+                });
+                if (sagaKeywords.length) document.getElementById("fSaga").value = sagaKeywords[0].replace(/(series|trilogy|saga)/gi, "").trim();
+              }
+            }).catch(function() {});
+        }
         showToast("\u2705 Informaci\u00f3n completada");
       }
 
@@ -848,7 +866,22 @@
               selectedGenres = []; book.subjects.slice(0,10).forEach(function(s) { var sl = (s.name || s).toLowerCase(); Object.keys(subjectMap2).forEach(function(k) { if (sl.indexOf(k) !== -1 && selectedGenres.indexOf(subjectMap2[k]) === -1) selectedGenres.push(subjectMap2[k]); }); });
               if (selectedGenres.length) { document.getElementById("fGenre").value = selectedGenres.join(", "); document.querySelectorAll(".genre-opt").forEach(function(g) { g.classList.toggle("selected", selectedGenres.indexOf(g.getAttribute("data-genre")) !== -1); }); }
             }
-            if (book.series) { document.getElementById("fSaga").value = book.series.map(function(s) { return s.name || s; }).join(", "); }
+            if (book.series && book.series.length) {
+              document.getElementById("fSaga").value = book.series.map(function(s) { return s.name || s; }).join(", ");
+            } else if (book.url) {
+              // Try to get saga from work page
+              var workUrl = book.url.replace("https://openlibrary.org", "");
+              fetch("https://openlibrary.org" + workUrl + ".json")
+                .then(function(r) { return r.json(); })
+                .then(function(work) {
+                  if (work.series && work.series.length) {
+                    document.getElementById("fSaga").value = work.series.map(function(s) { return typeof s === "string" ? s : s.name || ""; }).join(", ");
+                  } else if (work.subjects) {
+                    var sagaKw = work.subjects.filter(function(s) { var sl = s.toLowerCase(); return sl.indexOf("series") !== -1 || sl.indexOf("trilogy") !== -1 || sl.indexOf("saga") !== -1 || sl.indexOf("verse") !== -1; });
+                    if (sagaKw.length) document.getElementById("fSaga").value = sagaKw[0].replace(/(series|trilogy|saga)/gi, "").trim();
+                  }
+                }).catch(function() {});
+            }
             // Auto-detect mood
             if (book.subjects) { autoDetectMood(book.subjects.map(function(s) { return s.name || s; })); }
             // Show format picker
