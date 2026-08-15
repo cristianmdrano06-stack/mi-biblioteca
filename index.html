@@ -8,6 +8,7 @@
   <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23991b1b' width='100' height='100' rx='20'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='white'>📚</text></svg>">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mi Biblioteca</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
     :root {
@@ -125,66 +126,66 @@
       <div id="authForm" class="card" style="text-align:left">
         <div class="form-group"><label>Usuario</label><input type="text" id="authUser" placeholder="Tu nombre de usuario"></div>
         <div class="form-group"><label>Contraseña</label><input type="password" id="authPass" placeholder="Contraseña"></div>
-        <button class="btn btn-primary" id="btnLogin" style="margin-bottom:6px">🔑 Iniciar Sesión</button>
-        <button class="btn btn-primary" id="btnRegister" style="background:linear-gradient(135deg,#4b5563,#1f2937)">📝 Registrarse</button>
+        <button class="btn btn-primary" id="btnLogin" style="margin-bottom:6px"><i class="fa-solid fa-right-to-bracket"></i> Iniciar Sesión</button>
+        <button class="btn btn-primary" id="btnRegister" style="background:linear-gradient(135deg,#4b5563,#1f2937)"><i class="fa-solid fa-user-plus"></i> Registrarse</button>
         <p id="authError" style="font-size:11px;color:var(--scarlet);margin-top:8px;text-align:center;display:none"></p>
       </div>
-      <button id="authThemeToggle" style="margin-top:16px;background:var(--surface);border:1.5px solid var(--border);color:var(--text-sec);padding:8px 16px;border-radius:10px;font-size:12px;cursor:pointer">🌙 Modo oscuro</button>
+      <button id="authThemeToggle" style="margin-top:16px;background:var(--surface);border:1.5px solid var(--border);color:var(--text-sec);padding:8px 16px;border-radius:10px;font-size:12px;cursor:pointer"><i class="fa-solid fa-moon"></i> Modo oscuro</button>
     </div>
   </div>
 
   <div class="header" id="appHeader">
     <div class="header-top">
-      <button id="btnLogout" onclick="window.doLogout()" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:12px" title="Cerrar sesión">🚪</button>
-      <div style="text-align:center"><h1>📚 Mi Biblioteca</h1><p id="userGreeting">Catálogo personal de libros</p></div>
-      <button class="theme-toggle" id="themeBtn" title="Cambiar tema"><span id="themeIcon">🌙</span></button>
+      <button id="btnLogout" onclick="window.doLogout()" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:12px" title="Cerrar sesión"><i class="fa-solid fa-right-from-bracket"></i></button>
+      <div style="text-align:center"><h1><i class="fa-solid fa-book-open-reader"></i> Mi Biblioteca</h1><p id="userGreeting">Catálogo personal de libros</p></div>
+      <button class="theme-toggle" id="themeBtn" title="Cambiar tema"><i class="fa-solid fa-moon" id="themeIcon"></i></button>
     </div>
     <div class="stats-row">
-      <div class="stat-item">📚 <span id="statBooks">0</span></div>
-      <div class="stat-item">✓ <span id="statRead">0</span> leídos</div>
-      <div class="stat-item">📄 <span id="statPages">0</span> págs</div>
+      <div class="stat-item"><i class="fa-solid fa-book"></i> <span id="statBooks">0</span></div>
+      <div class="stat-item"><i class="fa-solid fa-check"></i> <span id="statRead">0</span> leídos</div>
+      <div class="stat-item"><i class="fa-solid fa-file-lines"></i> <span id="statPages">0</span> págs</div>
       <div class="stat-item">$ <span id="statSpent">0</span></div>
       <div class="stat-item">L <span id="statSpentL">0</span></div>
     </div>
   </div>
   <nav class="nav" id="mainNav">
-    <button class="nav-btn active" data-sec="reading">📖Lectura</button>
-    <button class="nav-btn" data-sec="add">+Agregar</button>
-    <button class="nav-btn" data-sec="library">📚Biblioteca</button>
-    <button class="nav-btn" data-sec="dashboard">📊Dashboard</button>
-    <button class="nav-btn" data-sec="spending">💰Gastos</button>
+    <button class="nav-btn active" data-sec="reading"><i class="fa-solid fa-book-open-reader"></i>Leyendo</button>
+    <button class="nav-btn" data-sec="add"><i class="fa-solid fa-plus"></i>Agregar</button>
+    <button class="nav-btn" data-sec="library"><i class="fa-solid fa-book"></i>Biblioteca</button>
+    <button class="nav-btn" data-sec="dashboard"><i class="fa-solid fa-chart-pie"></i>Dashboard</button>
+    <button class="nav-btn" data-sec="spending"><i class="fa-solid fa-wallet"></i>Gastos</button>
   </nav>
   <div class="container">
 <div id="sec-reading" class="section active">
       <div class="card" id="currentReadingCard">
-        <div class="card-title">📖 Libro en Curso</div>
+        <div class="card-title"><i class="fa-solid fa-book-open-reader"></i> Libro en Curso</div>
         <div id="currentReading">
-          <div class="empty">📖<p>No hay un libro en curso</p><p style="font-size:11px;margin-top:4px;color:var(--text-muted)">Selecciona uno de tus pendientes para comenzar</p></div>
+          <div class="empty"><i class="fa-solid fa-book-open"></i><p>No hay un libro en curso</p><p style="font-size:11px;margin-top:4px;color:var(--text-muted)">Selecciona uno de tus pendientes para comenzar</p></div>
         </div>
       </div>
       <div class="card">
-        <div class="card-title">📋 Libros Pendientes</div>
+        <div class="card-title"><i class="fa-solid fa-clock"></i> Libros Pendientes</div>
         <div id="pendingBooks">
-          <div class="empty">📋<p>No hay libros pendientes</p><p style="font-size:11px;margin-top:4px;color:var(--text-muted)">Agrega libros desde la pestaña +Agregar</p></div>
+          <div class="empty"><i class="fa-solid fa-inbox"></i><p>No hay libros pendientes</p><p style="font-size:11px;margin-top:4px;color:var(--text-muted)">Agrega libros desde la pestaña +Agregar</p></div>
         </div>
       </div>
       <div class="card">
-        <div class="card-title">💫 Lista de Deseos</div>
+        <div class="card-title"><i class="fa-solid fa-heart"></i> Lista de Deseos</div>
         <div id="wishlistBooks">
-          <div class="empty">⭐<p>No hay libros en tu lista de deseos</p><p style="font-size:11px;margin-top:4px;color:var(--text-muted)">Agrega un libro con estado "Deseado"</p></div>
+          <div class="empty"><i class="fa-solid fa-star"></i><p>No hay libros en tu lista de deseos</p><p style="font-size:11px;margin-top:4px;color:var(--text-muted)">Agrega un libro con estado "Deseado"</p></div>
         </div>
       </div>
     </div>
     <div id="sec-add" class="section">
       <div class="card">
-        <div class="card-title">➕ Nuevo Libro</div>
+        <div class="card-title"><i class="fa-solid fa-book-medical"></i> Nuevo Libro</div>
         <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:12px">
           <div class="cover-preview" id="coverPreview"><i class="fa-solid fa-image" style="color:var(--scarlet-mid);font-size:22px"></i></div>
           <div style="flex:1">
             <div class="form-group" style="margin-bottom:8px"><label>Título del libro</label><input type="text" id="fTitle" placeholder="Ej: Cien años de soledad"></div>
             <div style="display:flex;gap:6px">
-              <button type="button" class="btn btn-sm btn-outline" id="btnUploadCover" style="flex:1">⬆️ Subir imagen</button>
-              <button type="button" class="btn btn-sm" id="btnAutoFill" style="flex:1;background:var(--scarlet);color:#fff">🔍 Buscar info</button>
+              <button type="button" class="btn btn-sm btn-outline" id="btnUploadCover" style="flex:1"><i class="fa-solid fa-upload"></i> Subir imagen</button>
+              <button type="button" class="btn btn-sm" id="btnAutoFill" style="flex:1;background:var(--scarlet);color:#fff"><i class="fa-solid fa-magnifying-glass"></i> Buscar info</button>
             </div>
           </div>
         </div>
@@ -245,17 +246,17 @@
         </div>
         <div class="form-group"><label>Editorial</label><input type="text" id="fPublisher" placeholder="Ej: Penguin Random House" list="publisherList"><datalist id="publisherList"></datalist></div>
         <div class="form-group"><label>Tienda</label><input type="text" id="fStore" placeholder="Ej: Amazon, Librería Nacional..." list="storeList"><datalist id="storeList"></datalist></div>
-        <div class="form-group"><label>ISBN</label><div style="display:flex;gap:4px"><input type="text" id="fIsbn" placeholder="978-3-16-148410-0" inputmode="numeric" style="flex:1"><button type="button" class="btn btn-sm" id="btnScanIsbn" style="background:var(--charcoal);color:var(--cream);white-space:nowrap">▮▮▮ Escanear</button><button type="button" class="btn btn-sm" id="btnIsbnFill" style="background:var(--info);color:#fff;white-space:nowrap">🔍</button></div></div>
+        <div class="form-group"><label>ISBN</label><div style="display:flex;gap:4px"><input type="text" id="fIsbn" placeholder="978-3-16-148410-0" inputmode="numeric" style="flex:1"><button type="button" class="btn btn-sm" id="btnScanIsbn" style="background:var(--charcoal);color:var(--cream);white-space:nowrap"><i class="fa-solid fa-barcode"></i> Escanear</button><button type="button" class="btn btn-sm" id="btnIsbnFill" style="background:var(--info);color:#fff;white-space:nowrap"><i class="fa-solid fa-search"></i></button></div></div>
         <div class="form-group"><label>Notas</label><textarea id="fNotes" placeholder="Comentarios personales..."></textarea></div>
-        <button class="btn btn-primary" id="btnSave">💾 Guardar Libro</button>
-        <button class="btn btn-primary" id="btnCancel" style="display:none;background:linear-gradient(135deg,#4b5563,#1f2937);margin-top:6px">✕ Cancelar Edición</button>
+        <button class="btn btn-primary" id="btnSave"><i class="fa-solid fa-floppy-disk"></i> Guardar Libro</button>
+        <button class="btn btn-primary" id="btnCancel" style="display:none;background:linear-gradient(135deg,#4b5563,#1f2937);margin-top:6px"><i class="fa-solid fa-xmark"></i> Cancelar Edición</button>
         <div id="postSaveOptions" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:20px">
           <div style="background:var(--surface);border-radius:16px;padding:24px;text-align:center;max-width:300px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.2)">
             <div style="font-size:40px;margin-bottom:8px">✅</div>
             <h3 style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px">¡Libro guardado!</h3>
             <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px">¿Qué deseas hacer ahora?</p>
-            <button class="btn btn-primary" id="btnAddAnother" style="margin-bottom:8px">+ Agregar otro libro</button>
-            <button class="btn btn-primary" id="btnGoHome" style="background:linear-gradient(135deg,#047857,#065f46)">🏠 Regresar al Home</button>
+            <button class="btn btn-primary" id="btnAddAnother" style="margin-bottom:8px"><i class="fa-solid fa-plus"></i> Agregar otro libro</button>
+            <button class="btn btn-primary" id="btnGoHome" style="background:linear-gradient(135deg,#047857,#065f46)"><i class="fa-solid fa-house"></i> Regresar al Home</button>
           </div>
         </div>
       </div>
@@ -263,9 +264,9 @@
     <div id="sec-library" class="section">
       <div class="card" style="text-align:center;padding:12px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <button class="btn btn-sm btn-outline" id="btnCalPrev">◀</button>
+          <button class="btn btn-sm btn-outline" id="btnCalPrev"><i class="fa-solid fa-chevron-left"></i></button>
           <h3 id="calMonthTitle" style="font-size:14px;font-weight:700;color:var(--text)"></h3>
-          <button class="btn btn-sm btn-outline" id="btnCalNext">▶</button>
+          <button class="btn btn-sm btn-outline" id="btnCalNext"><i class="fa-solid fa-chevron-right"></i></button>
         </div>
         <div id="readingStats" style="display:flex;gap:12px;justify-content:center;margin-bottom:12px">
           <div style="text-align:center"><span id="statTotalRead" style="font-size:20px;font-weight:700;color:var(--scarlet)">0</span><p style="font-size:9px;color:var(--text-muted)">Libros leídos</p></div>
@@ -277,21 +278,21 @@
       <div id="bookDetailModal" class="modal-overlay">
         <div class="modal" style="padding:16px">
           <div id="bookDetailContent"></div>
-          <button class="btn btn-sm btn-outline" id="btnCloseDetail" style="margin-top:10px;width:100%">✕ Cerrar</button>
+          <button class="btn btn-sm btn-outline" id="btnCloseDetail" style="margin-top:10px;width:100%"><i class="fa-solid fa-xmark"></i> Cerrar</button>
         </div>
       </div>
     </div>
     <div id="sec-dashboard" class="section">
-      <div style="text-align:right;margin-bottom:10px"><button class="btn-export" id="btnExportDash">📥 Exportar a PDF</button></div>
-      <div class="chart-card"><div class="chart-card-header"><h3>📊 Libros por Género</h3></div><div id="chartGenre" style="height:260px"></div></div>
-      <div class="chart-card"><div class="chart-card-header"><h3>👤 Top Autores</h3></div><div id="chartAuthor" style="height:260px"></div></div>
-      <div class="chart-card"><div class="chart-card-header"><h3>🎭 Mood de Lectura</h3></div><div id="chartMood" style="height:230px"></div></div>
-      <div class="chart-card"><div class="chart-card-header"><h3>📚 Por Formato</h3></div><div id="chartFormat" style="height:230px"></div></div>
-      <div class="chart-card"><div class="chart-card-header"><h3>📈 Lectura por Mes</h3></div><div id="chartTimeline" style="height:260px"></div></div>
-      <div class="chart-card"><div class="chart-card-header"><h3>🏪 Libros por Tienda</h3></div><div id="chartStore" style="height:260px"></div></div>
+      <div style="text-align:right;margin-bottom:10px"><button class="btn-export" id="btnExportDash"><i class="fa-solid fa-file-pdf"></i> Exportar a PDF</button></div>
+      <div class="chart-card"><div class="chart-card-header"><h3><i class="fa-solid fa-chart-pie"></i> Libros por Género</h3></div><div id="chartGenre" style="height:260px"></div></div>
+      <div class="chart-card"><div class="chart-card-header"><h3><i class="fa-solid fa-user"></i> Top Autores</h3></div><div id="chartAuthor" style="height:260px"></div></div>
+      <div class="chart-card"><div class="chart-card-header"><h3><i class="fa-solid fa-masks-theater"></i> Mood de Lectura</h3></div><div id="chartMood" style="height:230px"></div></div>
+      <div class="chart-card"><div class="chart-card-header"><h3><i class="fa-solid fa-book-open"></i> Por Formato</h3></div><div id="chartFormat" style="height:230px"></div></div>
+      <div class="chart-card"><div class="chart-card-header"><h3><i class="fa-solid fa-calendar-check"></i> Lectura por Mes</h3></div><div id="chartTimeline" style="height:260px"></div></div>
+      <div class="chart-card"><div class="chart-card-header"><h3><i class="fa-solid fa-store"></i> Libros por Tienda</h3></div><div id="chartStore" style="height:260px"></div></div>
     </div>
     <div id="sec-spending" class="section">
-      <div style="text-align:right;margin-bottom:10px"><button class="btn-export" id="btnExportSpend">📥 Exportar Gastos PDF</button></div>
+      <div style="text-align:right;margin-bottom:10px"><button class="btn-export" id="btnExportSpend"><i class="fa-solid fa-file-pdf"></i> Exportar Gastos PDF</button></div>
       <div class="spending-card">
         <div class="label">Total Gastado en Libros</div>
         <div class="amount" id="totalSpentUSD">$0.00 USD</div>
@@ -299,29 +300,22 @@
         <div class="sub-amount" id="totalSpentEUR">€0.00 EUR</div>
         <div class="label" style="margin-top:6px"><span id="spentCount">0</span> libros con precio</div>
       </div>
-      <div class="chart-card"><div class="chart-card-header"><h3>💰 Gasto Mensual</h3></div><div id="chartSpendMonth" style="height:260px"></div></div>
-      <div class="chart-card"><div class="chart-card-header"><h3>🏷️ Gasto por Género</h3></div><div id="chartSpendGenre" style="height:260px"></div></div>
-      <div class="chart-card"><div class="chart-card-header"><h3>📚 Gasto por Formato</h3></div><div id="chartSpendFormat" style="height:230px"></div></div>
-      <div class="chart-card"><div class="chart-card-header"><h3>🏪 Gasto por Tienda</h3></div><div id="chartSpendStore" style="height:260px"></div></div>
+      <div class="chart-card"><div class="chart-card-header"><h3><i class="fa-solid fa-chart-line"></i> Gasto Mensual</h3></div><div id="chartSpendMonth" style="height:260px"></div></div>
+      <div class="chart-card"><div class="chart-card-header"><h3><i class="fa-solid fa-tags"></i> Gasto por Género</h3></div><div id="chartSpendGenre" style="height:260px"></div></div>
+      <div class="chart-card"><div class="chart-card-header"><h3><i class="fa-solid fa-book"></i> Gasto por Formato</h3></div><div id="chartSpendFormat" style="height:230px"></div></div>
+      <div class="chart-card"><div class="chart-card-header"><h3><i class="fa-solid fa-store"></i> Gasto por Tienda</h3></div><div id="chartSpendStore" style="height:260px"></div></div>
     </div>
   </div>
     <div class="toast" id="toast"></div>
 
   <!-- Scanner Modal -->
-  <div id="searchResultsModal" class="modal-overlay">
-        <div class="modal" style="padding:16px;max-height:80vh;overflow-y:auto">
-          <h3 style="font-size:14px;font-weight:700;margin-bottom:10px;text-align:center">📚 Selecciona el libro correcto</h3>
-          <div id="searchResultsList"></div>
-          <button class="btn btn-sm btn-outline" onclick="document.getElementById('searchResultsModal').classList.remove('show')" style="margin-top:10px;width:100%">✕ Cancelar</button>
-        </div>
-      </div>
-      <div id="scannerModal" class="modal-overlay">
+  <div id="scannerModal" class="modal-overlay">
     <div class="modal" style="padding:16px;text-align:center">
-      <h3 style="margin-bottom:4px">▮▮▮ Escanear ISBN</h3>
+      <h3 style="margin-bottom:4px"><i class="fa-solid fa-barcode"></i> Escanear ISBN</h3>
       <div id="scannerChoices" style="margin-top:12px">
         <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px">¿Cómo quieres escanear?</p>
-        <button class="btn btn-primary" id="btnScanLive" style="margin-bottom:8px">📷 Escaneo en vivo</button>
-        <button class="btn btn-primary" id="btnScanPhoto" style="background:linear-gradient(135deg,#b45309,#78350f)">📷 Tomar foto</button>
+        <button class="btn btn-primary" id="btnScanLive" style="margin-bottom:8px"><i class="fa-solid fa-video"></i> Escaneo en vivo</button>
+        <button class="btn btn-primary" id="btnScanPhoto" style="background:linear-gradient(135deg,#b45309,#78350f)"><i class="fa-solid fa-camera"></i> Tomar foto</button>
         <input type="file" id="isbnPhotoFile" accept="image/*" capture="environment" style="display:none">
       </div>
       <div id="scannerLive" style="display:none">
@@ -329,46 +323,30 @@
         <video id="scannerVideo" style="width:100%;max-height:220px;border-radius:10px;background:#000;margin-bottom:8px" autoplay playsinline></video>
         <canvas id="scannerCanvas" style="display:none"></canvas>
         <p id="scannerStatus" style="font-size:11px;color:var(--scarlet);margin-bottom:8px"></p>
-        <button class="btn btn-sm" id="btnScanCapture" style="background:var(--scarlet);color:#fff">📷 Capturar</button>
+        <button class="btn btn-sm" id="btnScanCapture" style="background:var(--scarlet);color:#fff"><i class="fa-solid fa-camera"></i> Capturar</button>
       </div>
-      <button class="btn btn-sm btn-outline" id="btnScannerClose" style="margin-top:10px">✕ Cerrar</button>
+      <button class="btn btn-sm btn-outline" id="btnScannerClose" style="margin-top:10px"><i class="fa-solid fa-xmark"></i> Cerrar</button>
     </div>
   </div>
 
-  <script>window.onerror=function(){return true};</script>
   <script>
     (function() {
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", init);
-      } else {
-        init();
-      }
-      function init() {
-
-      var selectedGenres = [];
-      var selectedCover = "";
-      
-      // === STORAGE ===
-      var _mem = {};
-      var _lsOK = (function() { try { localStorage.setItem("_t","1"); localStorage.removeItem("_t"); return true; } catch(e) { return false; } })();
-      function storageGet(k) { try { return _lsOK ? localStorage.getItem(k) : (_mem[k] || null); } catch(e) { return _mem[k] || null; } }
-      function storageSet(k, v) { try { if (_lsOK) localStorage.setItem(k, v); } catch(e) {} _mem[k] = v; }
-      function storageRemove(k) { try { if (_lsOK) localStorage.removeItem(k); } catch(e) {} delete _mem[k]; }
+      "use strict";
 
       // === AUTH SYSTEM ===
       var currentUser = null;
       var usersDB = {};
       var booksCache = {};
-      try { usersDB = JSON.parse(storageGet("biblio_users") || "{}"); } catch(e) { usersDB = {}; }
+      try { usersDB = JSON.parse(localStorage.getItem("biblio_users") || "{}"); } catch(e) { usersDB = {}; }
       function getStorageKey() { return "myLibPro4_" + (currentUser || "default"); }
       function saveBooks() {
         booksCache[currentUser || "default"] = books;
-        try { storageSet(getStorageKey(), JSON.stringify(books)); } catch(e) {}
+        try { localStorage.setItem(getStorageKey(), JSON.stringify(books)); } catch(e) {}
       }
       
       function checkAuth() {
         try {
-          currentUser = storageGet("biblio_current_user");
+          currentUser = localStorage.getItem("biblio_current_user");
         } catch(e) { currentUser = null; }
         if (!currentUser) {
           document.getElementById("authOverlay").style.display = "flex";
@@ -400,7 +378,7 @@
         if (!usersDB[user]) { showAuthError("Usuario no encontrado"); return; }
         if (usersDB[user] !== btoa(pass)) { showAuthError("Contraseña incorrecta"); return; }
         currentUser = user;
-        try { storageSet("biblio_current_user", user); } catch(e) {}
+        try { localStorage.setItem("biblio_current_user", user); } catch(e) {}
         loadUserData();
       });
 
@@ -412,16 +390,16 @@
         if (pass.length < 4) { showAuthError("Contraseña mínimo 4 caracteres"); return; }
         if (usersDB[user]) { showAuthError("Ese usuario ya existe"); return; }
         usersDB[user] = btoa(pass);
-        try { storageSet("biblio_users", JSON.stringify(usersDB)); } catch(e) {}
+        try { localStorage.setItem("biblio_users", JSON.stringify(usersDB)); } catch(e) {}
         currentUser = user;
-        try { storageSet("biblio_current_user", user); } catch(e) {}
+        try { localStorage.setItem("biblio_current_user", user); } catch(e) {}
         loadUserData();
       });
 
       document.getElementById("authThemeToggle").addEventListener("click", function() {
         toggleTheme();
         var isDark = document.body.getAttribute("data-theme") === "dark";
-        this.innerHTML = isDark ? '☀️ Modo claro' : '🌙 Modo oscuro';
+        this.innerHTML = isDark ? '<i class="fa-solid fa-sun"></i> Modo claro' : '<i class="fa-solid fa-moon"></i> Modo oscuro';
       });
 
 
@@ -430,7 +408,7 @@
         if (booksCache[key]) {
           books = booksCache[key];
         } else {
-          try { books = JSON.parse(storageGet(getStorageKey()) || "[]"); } catch(e) { books = []; }
+          try { books = JSON.parse(localStorage.getItem(getStorageKey()) || "[]"); } catch(e) { books = []; }
           booksCache[key] = books;
         }
         // Show app directly (don't re-read localStorage)
@@ -452,13 +430,13 @@
       }
 
       var books = [];
-      try { books = JSON.parse(storageGet(getStorageKey()) || "[]"); } catch(e) { books = []; }
+      try { books = JSON.parse(localStorage.getItem(getStorageKey()) || "[]"); } catch(e) { books = []; }
       booksCache[currentUser || "default"] = books;
       var editingId = null;
       var selectedFormat = "";
       var activeGenre = "";
       var activeStatus = "";
-      selectedCover = "";
+      var selectedCover = "";
 
       var RATES = { USD_HNL: 26.81, EUR_HNL: 29.50, EUR_USD: 1.10 };
       var genreColors = {
@@ -473,21 +451,14 @@
       function toggleTheme() {
         var isDark = document.body.getAttribute("data-theme") === "dark";
         document.body.setAttribute("data-theme", isDark ? "" : "dark");
-        var themeEl = document.getElementById("themeIcon");
-        if (themeEl) themeEl.textContent = isDark ? "🌙" : "☀️";
-        var authToggle = document.getElementById("authThemeToggle");
-        if (authToggle) authToggle.innerHTML = isDark ? '🌙 Modo oscuro' : '☀️ Modo claro';
-        try { storageSet("libTheme", isDark ? "light" : "dark"); } catch(e) {}
+        document.getElementById("themeIcon").className = isDark ? "fa-solid fa-moon" : "fa-solid fa-sun";
+        try { localStorage.setItem("libTheme", isDark ? "light" : "dark"); } catch(e) {}
       }
-      try {
-        if (storageGet("libTheme") === "dark") {
-          document.body.setAttribute("data-theme", "dark");
-          var ti = document.getElementById("themeIcon");
-          if (ti) ti.textContent = "☀️";
-          var at = document.getElementById("authThemeToggle");
-          if (at) at.innerHTML = '☀️ Modo claro';
-        }
-      } catch(e) {}
+      if ((function(){try{return localStorage.getItem("libTheme")}catch(e){return null}})() === "dark") {
+        document.body.setAttribute("data-theme", "dark");
+        document.getElementById("themeIcon").className = "fa-solid fa-sun";
+        document.getElementById("authThemeToggle").innerHTML = '<i class="fa-solid fa-sun"></i> Modo claro';
+      }
       document.getElementById("themeBtn").addEventListener("click", toggleTheme);
 
       // === NAVIGATION ===
@@ -610,7 +581,7 @@
         saveBooks();
         clearForm(); updateStats(); updateDataLists();
         document.getElementById("btnCancel").style.display = "none";
-        document.getElementById("btnSave").innerHTML = '• Guardar Libro';
+        document.getElementById("btnSave").innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Libro';
         if (wasEditing) {
           showSection("reading");
         } else {
@@ -653,15 +624,15 @@
           if (b.genre) html += '<span class="tag" style="margin-bottom:6px">' + b.genre + '</span> ';
           if (b.format) html += '<span class="tag tag-gold">' + b.format + '</span>';
           html += '<div style="margin-top:10px;display:flex;gap:6px">';
-          html += '<button class="btn btn-sm" style="background:var(--success);color:#fff" onclick="markAsRead(' + b.id + ')">✓ Terminado</button>';
-          html += '<button class="btn btn-sm btn-outline" onclick="markAsAbandoned(' + b.id + ')">✕ Pausar</button>';
+          html += '<button class="btn btn-sm" style="background:var(--success);color:#fff" onclick="markAsRead(' + b.id + ')"><i class="fa-solid fa-check"></i> Terminado</button>';
+          html += '<button class="btn btn-sm btn-outline" onclick="markAsAbandoned(' + b.id + ')"><i class="fa-solid fa-xmark"></i> Pausar</button>';
           html += '</div>';
-          if (b.dateStart) html += '<p style="font-size:10px;color:var(--text-muted);margin-top:8px">📅 Iniciado: ' + b.dateStart + '</p>';
+          if (b.dateStart) html += '<p style="font-size:10px;color:var(--text-muted);margin-top:8px"><i class="fa-solid fa-calendar"></i> Iniciado: ' + b.dateStart + '</p>';
           html += '</div></div>';
           // Bitácora
           if (b.log && b.log.length) {
             html += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">';
-            html += '<p style="font-size:10px;font-weight:700;color:var(--text-sec);margin-bottom:6px">📋 Bitácora</p>';
+            html += '<p style="font-size:10px;font-weight:700;color:var(--text-sec);margin-bottom:6px"><i class="fa-solid fa-clock-rotate-left"></i> Bitácora</p>';
             b.log.slice().reverse().forEach(function(entry) {
               var d = new Date(entry.date);
               var dateStr = d.toLocaleDateString("es", { day: "numeric", month: "short", year: "numeric" });
@@ -684,14 +655,14 @@
               html += '<div style="width:30px;height:40px;border-radius:4px;overflow:hidden;flex-shrink:0">' + (rb.cover ? '<img src="' + rb.cover + '" style="width:100%;height:100%;object-fit:cover">' : '<div style="width:100%;height:100%;background:var(--scarlet-light);display:flex;align-items:center;justify-content:center;font-size:12px">' + "📚" + '</div>') + '</div>';
               html += '<div style="flex:1;min-width:0"><p style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + rb.title + '</p>';
               html += '<p style="font-size:10px;color:var(--scarlet)">' + (rb.author || '') + '</p></div>';
-              html += '<button class="btn btn-sm" style="background:var(--success);color:#fff;font-size:9px" onclick="markAsRead(' + rb.id + ')">✓</button>';
+              html += '<button class="btn btn-sm" style="background:var(--success);color:#fff;font-size:9px" onclick="markAsRead(' + rb.id + ')"><i class="fa-solid fa-check"></i></button>';
               html += '</div>';
             }
             html += '</div>';
           }
           crEl.innerHTML = html;
         } else {
-          crEl.innerHTML = '<div class="empty">📖<p>No hay un libro en curso</p><p style="font-size:11px;margin-top:4px;color:var(--text-muted)">Selecciona uno de tus pendientes para comenzar</p></div>';
+          crEl.innerHTML = '<div class="empty"><i class="fa-solid fa-book-open"></i><p>No hay un libro en curso</p><p style="font-size:11px;margin-top:4px;color:var(--text-muted)">Selecciona uno de tus pendientes para comenzar</p></div>';
         }
         
         // Pending books section
@@ -708,7 +679,7 @@
           });
           pbEl.innerHTML = phtml;
         } else {
-          pbEl.innerHTML = '<div class="empty" style="padding:20px">📋<p>No hay libros pendientes</p></div>';
+          pbEl.innerHTML = '<div class="empty" style="padding:20px"><i class="fa-solid fa-inbox"></i><p>No hay libros pendientes</p></div>';
         }
 
         // Wishlist section
@@ -724,12 +695,12 @@
             whtml += '<p style="font-size:10px;color:var(--text-sec)">' + (wb.author || '') + '</p>';
             if (priceStr) whtml += '<p style="font-size:10px;color:var(--gold);font-weight:600">' + priceStr + (wb.store ? ' · ' + wb.store : '') + '</p>';
             whtml += '</div>';
-            whtml += '<button class="btn btn-sm" style="background:var(--success);color:#fff;font-size:9px;white-space:nowrap" onclick="markAsPurchased(' + wb.id + ')">✅ Comprado</button>';
+            whtml += '<button class="btn btn-sm" style="background:var(--success);color:#fff;font-size:9px;white-space:nowrap" onclick="markAsPurchased(' + wb.id + ')"><i class="fa-solid fa-cart-shopping"></i> Comprado</button>';
             whtml += '</div>';
           });
           wlEl.innerHTML = whtml;
         } else {
-          wlEl.innerHTML = '<div class="empty" style="padding:20px">⭐<p>No hay libros en tu lista de deseos</p></div>';
+          wlEl.innerHTML = '<div class="empty" style="padding:20px"><i class="fa-solid fa-star"></i><p>No hay libros en tu lista de deseos</p></div>';
         }
 
       }
@@ -792,7 +763,7 @@ function markAsRead(id) {
         html += '</div>';
         html += '<p style="font-size:11px;margin-bottom:10px;color:var(--text-muted)">¿Qué mood te dejó?</p>';
         html += '<select id="completionMood" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;background:var(--cream);color:var(--text);margin-bottom:12px"><option value="">Seleccionar...</option><option>😊 Feliz</option><option>😢 Triste</option><option>😱 Tenso</option><option>🤔 Reflexivo</option><option>😍 Romántico</option><option>😂 Divertido</option><option>😴 Relajante</option><option>🤯 Impactante</option><option>💪 Motivante</option></select>';
-        html += '<button class="btn btn-primary" onclick="confirmMarkAsRead(' + id + ')">✓ Confirmar</button>';
+        html += '<button class="btn btn-primary" onclick="confirmMarkAsRead(' + id + ')"><i class="fa-solid fa-check"></i> Confirmar</button>';
         html += '</div>';
         document.getElementById("bookDetailContent").innerHTML = html;
         document.getElementById("bookDetailModal").classList.add("show");
@@ -1018,7 +989,7 @@ function markAsRead(id) {
         if (b.cover) { selectedCover = b.cover; document.getElementById("coverPreview").innerHTML = '<img src="' + b.cover + '">'; }
         convertCurrency();
         document.getElementById("btnCancel").style.display = "block";
-        document.getElementById("btnSave").innerHTML = '• Actualizar Libro';
+        document.getElementById("btnSave").innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Actualizar Libro';
         showSection("add");
         showToast("✏️ Editando - Pulsa Cancelar para descartar");
       }
@@ -1027,7 +998,7 @@ function markAsRead(id) {
 
       function renderSimpleBar(containerId, data, color) {
         var el = document.getElementById(containerId);
-        if (!el || !data.length) { if(el) el.innerHTML = '<div class="empty">📊<p>Sin datos</p></div>'; return; }
+        if (!el || !data.length) { if(el) el.innerHTML = '<div class="empty"><i class="fa-solid fa-chart-bar"></i><p>Sin datos</p></div>'; return; }
         var max = Math.max.apply(null, data.map(function(d) { return d.value; }));
         var html = '<div style="padding:8px">';
         data.forEach(function(d) {
@@ -1046,7 +1017,7 @@ function markAsRead(id) {
 
       function renderSimplePie(containerId, data) {
         var el = document.getElementById(containerId);
-        if (!el || !data.length) { if(el) el.innerHTML = '<div class="empty">📊<p>Sin datos</p></div>'; return; }
+        if (!el || !data.length) { if(el) el.innerHTML = '<div class="empty"><i class="fa-solid fa-chart-pie"></i><p>Sin datos</p></div>'; return; }
         var total = data.reduce(function(s, d) { return s + d.value; }, 0);
         if (total === 0) { el.innerHTML = '<div class="empty"><p>Sin datos</p></div>'; return; }
         var size = 180, cx = size/2, cy = size/2, r = 70, ri = 40;
@@ -1160,7 +1131,7 @@ function markAsRead(id) {
         editingId = null;
         clearForm();
         document.getElementById("btnCancel").style.display = "none";
-        document.getElementById("btnSave").innerHTML = '• Guardar Libro';
+        document.getElementById("btnSave").innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Libro';
         showSection("reading");
         showToast("❌ Edición cancelada");
       });
@@ -1234,311 +1205,151 @@ function markAsRead(id) {
         var title = document.getElementById("fTitle").value.trim();
         if (!title) { showToast("⚠️ Escribe un título primero"); return; }
         showToast("🔍 Buscando información...");
-        fetch("https://openlibrary.org/search.json?title=" + encodeURIComponent(title) + "&limit=5&fields=key,title,author_name,first_publish_year,cover_i,isbn,number_of_pages_median,subject,publisher,edition_key")
+        fetch("https://openlibrary.org/search.json?title=" + encodeURIComponent(title) + "&limit=1")
           .then(function(r) { return r.json(); })
           .then(function(data) {
             if (!data.docs || !data.docs.length) { showToast("❌ No se encontró información"); return; }
-            if (data.docs.length === 1) {
-              // Only one result - fill directly
-              fillFromSearchResult(data.docs[0]);
-              return;
+            var book = data.docs[0];
+            if (book.author_name && book.author_name[0]) document.getElementById("fAuthor").value = book.author_name[0];
+            if (book.first_publish_year) document.getElementById("fYear").value = book.first_publish_year;
+            if (book.number_of_pages_median) document.getElementById("fPages").value = book.number_of_pages_median;
+            if (book.publisher && book.publisher[0]) document.getElementById("fPublisher").value = book.publisher[0];
+            if (book.isbn && book.isbn[0]) document.getElementById("fIsbn").value = book.isbn[0];
+            if (book.cover_i) {
+              selectedCover = "https://covers.openlibrary.org/b/id/" + book.cover_i + "-L.jpg";
+              document.getElementById("coverPreview").innerHTML = '<img src="' + selectedCover + '">';
             }
-            // Multiple results - show picker
-            var html = "";
-            data.docs.forEach(function(doc, idx) {
-              var coverUrl = doc.cover_i ? "https://covers.openlibrary.org/b/id/" + doc.cover_i + "-S.jpg" : "";
-              html += '<div style="display:flex;gap:10px;align-items:center;padding:10px;border-radius:10px;border:1.5px solid var(--border);margin-bottom:8px;cursor:pointer;transition:all .2s" onclick="pickSearchResult(' + idx + ')" onmouseover="this.style.background='var(--scarlet-light)'" onmouseout="this.style.background='transparent'">';
-              html += '<div style="width:40px;height:55px;border-radius:4px;overflow:hidden;flex-shrink:0;background:var(--cream)">' + (coverUrl ? '<img src="' + coverUrl + '" style="width:100%;height:100%;object-fit:cover">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px">📚</div>') + '</div>';
-              html += '<div style="flex:1;min-width:0">';
-              html += '<p style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + doc.title + '</p>';
-              html += '<p style="font-size:10px;color:var(--text-sec)">' + (doc.author_name ? doc.author_name[0] : "Autor desconocido") + '</p>';
-              html += '<p style="font-size:9px;color:var(--text-muted)">' + (doc.first_publish_year || "") + (doc.publisher ? " · " + doc.publisher[0] : "") + '</p>';
-              html += '</div></div>';
-            });
-            document.getElementById("searchResultsList").innerHTML = html;
-            document.getElementById("searchResultsModal").classList.add("show");
-            window._searchResults = data.docs;
+            // Try to match genres from subjects
+            if (book.subject) {
+              var subjectMap = {
+                "fiction": "Ficción", "fantasy": "Fantasía", "science fiction": "Ciencia Ficción",
+                "romance": "Romance", "horror": "Terror", "mystery": "Misterio",
+                "history": "Historia", "biography": "Biografía", "self-help": "Autoayuda",
+                "poetry": "Poesía", "children": "Infantil", "comics": "Cómic/Manga",
+                "manga": "Cómic/Manga", "thriller": "Misterio", "nonfiction": "No Ficción",
+                "non-fiction": "No Ficción", "programming": "Técnico", "technology": "Técnico"
+              };
+              selectedGenres = [];
+              var subjects = book.subject.slice(0, 10).map(function(s) { return s.toLowerCase(); });
+              subjects.forEach(function(s) {
+                Object.keys(subjectMap).forEach(function(key) {
+                  if (s.indexOf(key) !== -1 && selectedGenres.indexOf(subjectMap[key]) === -1) {
+                    selectedGenres.push(subjectMap[key]);
+                  }
+                });
+              });
+              // If no mapped genre found, use first subject as custom genre
+              if (!selectedGenres.length && book.subject.length) {
+                var customGenre = book.subject[0];
+                addGenreChip(customGenre);
+                selectedGenres.push(customGenre);
+              }
+              // Add genre chips if they don't exist and select them
+              selectedGenres.forEach(function(g) { addGenreChip(g); });
+              document.getElementById("fGenre").value = selectedGenres.join(", ");
+              document.querySelectorAll(".genre-opt").forEach(function(g) {
+                g.classList.toggle("selected", selectedGenres.indexOf(g.getAttribute("data-genre")) !== -1);
+              });
+            }
+            // Auto-detect mood from subjects
+            if (book.subjects) {
+              var subStr = book.subjects.map(function(s) { return (s.name || s).toLowerCase(); }).join(" ");
+              var moodMap = [
+                {keywords: ["romance","love","passion"], mood: "😍 Romántico"},
+                {keywords: ["thriller","suspense","mystery","crime"], mood: "😱 Tenso"},
+                {keywords: ["humor","comedy","funny","comic"], mood: "😂 Divertido"},
+                {keywords: ["philosophy","psychology","self-help","think"], mood: "🤔 Reflexivo"},
+                {keywords: ["horror","dark","death","grief","sad","tragedy"], mood: "😢 Triste"},
+                {keywords: ["adventure","fantasy","epic","hero"], mood: "😊 Feliz"},
+                {keywords: ["motivation","success","business","leadership"], mood: "💪 Motivante"},
+                {keywords: ["science fiction","dystop","future","space"], mood: "🤯 Impactante"},
+                {keywords: ["meditation","mindful","calm","relax"], mood: "😴 Relajante"}
+              ];
+              for (var mi = 0; mi < moodMap.length; mi++) {
+                var found = moodMap[mi].keywords.some(function(k) { return subStr.indexOf(k) !== -1; });
+                if (found) {
+                  document.querySelectorAll(".mood-opt").forEach(function(el) { el.classList.remove("selected"); if (el.getAttribute("data-mood") === moodMap[mi].mood) el.classList.add("selected"); });
+                  break;
+                }
+              }
+            }
+            // Auto-fill saga from title search
+            if (book.series && book.series.length) {
+              document.getElementById("fSaga").value = book.series[0];
+            }
+            showToast("✅ Información completada");
           })
           .catch(function() { showToast("⚠️ Sin conexión"); });
       });
 
-      window.pickSearchResult = function(idx) {
-        document.getElementById("searchResultsModal").classList.remove("show");
-        var doc = window._searchResults[idx];
-        fillFromSearchResult(doc);
-      };
-
-      function fillFromSearchResult(book) {
-        if (book.title) document.getElementById("fTitle").value = book.title;
-        if (book.author_name && book.author_name[0]) document.getElementById("fAuthor").value = book.author_name[0];
-        if (book.first_publish_year) document.getElementById("fYear").value = book.first_publish_year;
-        if (book.number_of_pages_median) document.getElementById("fPages").value = book.number_of_pages_median;
-        if (book.publisher && book.publisher[0]) document.getElementById("fPublisher").value = book.publisher[0];
-        if (book.isbn && book.isbn[0]) document.getElementById("fIsbn").value = book.isbn[0];
-        if (book.cover_i) {
-          selectedCover = "https://covers.openlibrary.org/b/id/" + book.cover_i + "-L.jpg";
-          document.getElementById("coverPreview").innerHTML = '<img src="' + selectedCover + '">';
-        }
-        
-        // Auto-fill genres from subjects
-        if (book.subject) {
-          var subjectMap = {
-            "fiction":"Ficción","fantasy":"Fantasía","science fiction":"Ciencia Ficción",
-            "romance":"Romance","horror":"Terror","mystery":"Misterio","thriller":"Misterio",
-            "history":"Historia","biography":"Biografía","self-help":"Autoayuda",
-            "poetry":"Poesía","children":"Infantil","comics":"Cómic/Manga",
-            "manga":"Cómic/Manga","nonfiction":"No Ficción","non-fiction":"No Ficción",
-            "programming":"Técnico","technology":"Técnico","adventure":"Aventura",
-            "drama":"Drama","philosophy":"Filosofía","psychology":"Psicología"
-          };
-          selectedGenres = [];
-          var subjects = book.subject.slice(0, 15).map(function(s) { return s.toLowerCase(); });
-          subjects.forEach(function(s) {
-            Object.keys(subjectMap).forEach(function(key) {
-              if (s.indexOf(key) !== -1 && selectedGenres.indexOf(subjectMap[key]) === -1) {
-                selectedGenres.push(subjectMap[key]);
-              }
-            });
-          });
-          if (!selectedGenres.length && book.subject.length) {
-            var customG = book.subject[0];
-            addGenreChip(customG);
-            selectedGenres.push(customG);
-          }
-          selectedGenres.forEach(function(g) { addGenreChip(g); });
-          document.getElementById("fGenre").value = selectedGenres.join(", ");
-          document.querySelectorAll(".genre-opt").forEach(function(g) {
-            g.classList.toggle("selected", selectedGenres.indexOf(g.getAttribute("data-genre")) !== -1);
-          });
-        }
-        
-        // Auto-detect mood from subjects
-        if (book.subject) {
-          var subStr = book.subject.slice(0, 20).join(" ").toLowerCase();
-          var moodMap = [
-            {keywords:["romance","love","passion"],mood:"😍 Romántico"},
-            {keywords:["thriller","suspense","mystery","crime","detective"],mood:"😱 Tenso"},
-            {keywords:["humor","comedy","funny","comic","jokes"],mood:"😂 Divertido"},
-            {keywords:["philosophy","psychology","self-help","thinking","mindset"],mood:"🤔 Reflexivo"},
-            {keywords:["horror","dark","death","grief","sad","tragedy","war"],mood:"😢 Triste"},
-            {keywords:["adventure","fantasy","epic","hero","quest","dragon"],mood:"😊 Feliz"},
-            {keywords:["motivation","success","business","leadership","entrepreneur"],mood:"💪 Motivante"},
-            {keywords:["science fiction","dystop","future","space","apocal"],mood:"🤯 Impactante"},
-            {keywords:["meditation","mindful","calm","relax","yoga","spiritual"],mood:"😴 Relajante"}
-          ];
-          var moodFound = false;
-          for (var mi = 0; mi < moodMap.length; mi++) {
-            var found = moodMap[mi].keywords.some(function(k) { return subStr.indexOf(k) !== -1; });
-            if (found) {
-              selectMoodChip(moodMap[mi].mood);
-              moodFound = true;
-              break;
-            }
-          }
-          // If no mood matched, create one from first subject
-          if (!moodFound && book.subject.length > 0) {
-            var firstSub = book.subject[0];
-            var newMood = "📖 " + firstSub;
-            addMoodChip(newMood);
-            selectMoodChip(newMood);
-          }
-        }
-        
-        // Fetch edition details for pages and format
-        if (book.edition_key && book.edition_key[0]) {
-          fetch("https://openlibrary.org/books/" + book.edition_key[0] + ".json")
-            .then(function(r) { return r.json(); })
-            .then(function(ed) {
-              if (ed.number_of_pages && !document.getElementById("fPages").value) {
-                document.getElementById("fPages").value = ed.number_of_pages;
-              }
-              if (ed.physical_format) {
-                var fmt = ed.physical_format.toLowerCase();
-                if (fmt.indexOf("hardcover") !== -1 || fmt.indexOf("hard") !== -1) {
-                  selectFormat("Tapa dura");
-                } else if (fmt.indexOf("paperback") !== -1 || fmt.indexOf("paper") !== -1 || fmt.indexOf("soft") !== -1) {
-                  selectFormat("Tapa blanda");
-                } else if (fmt.indexOf("ebook") !== -1 || fmt.indexOf("digital") !== -1 || fmt.indexOf("kindle") !== -1) {
-                  selectFormat("E-book");
-                } else if (fmt.indexOf("audio") !== -1) {
-                  selectFormat("Audiolibro");
-                }
-              }
-              // Also try to get series/saga
-              if (ed.series && ed.series.length) {
-                document.getElementById("fSaga").value = ed.series.join(", ");
-              }
-            }).catch(function() {});
-        } else if (book.isbn && book.isbn[0]) {
-          // Fallback: fetch by ISBN for edition details
-          fetch("https://openlibrary.org/isbn/" + book.isbn[0] + ".json")
-            .then(function(r) { return r.json(); })
-            .then(function(ed) {
-              if (ed.number_of_pages && !document.getElementById("fPages").value) {
-                document.getElementById("fPages").value = ed.number_of_pages;
-              }
-              if (ed.physical_format) {
-                var fmt = ed.physical_format.toLowerCase();
-                if (fmt.indexOf("hardcover") !== -1 || fmt.indexOf("hard") !== -1) selectFormat("Tapa dura");
-                else if (fmt.indexOf("paperback") !== -1 || fmt.indexOf("soft") !== -1) selectFormat("Tapa blanda");
-                else if (fmt.indexOf("ebook") !== -1 || fmt.indexOf("digital") !== -1 || fmt.indexOf("kindle") !== -1) selectFormat("E-book");
-                else if (fmt.indexOf("audio") !== -1) selectFormat("Audiolibro");
-              }
-              if (ed.series && ed.series.length) {
-                document.getElementById("fSaga").value = ed.series.join(", ");
-              }
-            }).catch(function() {});
-        }
-        
-        showToast("✅ Información completada");
-      }
-
-      // Helper: select format chip
-      function selectFormat(fmt) {
-        document.querySelectorAll(".format-opt").forEach(function(el) {
-          el.classList.toggle("selected", el.getAttribute("data-val") === fmt);
-        });
-      }
-
-      // Helper: select mood chip
-      function selectMoodChip(mood) {
-        document.querySelectorAll(".mood-opt").forEach(function(el) { el.classList.remove("selected"); });
-        var found = document.querySelector('.mood-opt[data-mood="' + mood + '"]');
-        if (found) found.classList.add("selected");
-      }
-
-      // Helper: add new mood chip if doesn't exist
-      function addMoodChip(mood) {
-        if (document.querySelector('.mood-opt[data-mood="' + mood + '"]')) return;
-        var chip = document.createElement("span");
-        chip.className = "mood-opt";
-        chip.setAttribute("data-mood", mood);
-        chip.textContent = mood;
-        chip.addEventListener("click", function() {
-          document.querySelectorAll(".mood-opt").forEach(function(el) { el.classList.remove("selected"); });
-          chip.classList.add("selected");
-        });
-        document.getElementById("moodSelector").appendChild(chip);
-      }
-
-// === AUTO-FILL FROM ISBN ===
+      // === AUTO-FILL FROM ISBN ===
       document.getElementById("btnIsbnFill").addEventListener("click", function() {
         var isbn = document.getElementById("fIsbn").value.trim().replace(/[-\s]/g, "");
         if (!isbn) { showToast("⚠️ Escribe un ISBN primero"); return; }
         showToast("🔍 Buscando por ISBN...");
-        fetch("https://openlibrary.org/isbn/" + isbn + ".json")
-          .then(function(r) { if (!r.ok) throw new Error("not found"); return r.json(); })
-          .then(function(ed) {
-            // Fill from edition data
-            if (ed.title) document.getElementById("fTitle").value = ed.title;
-            if (ed.number_of_pages) document.getElementById("fPages").value = ed.number_of_pages;
-            if (ed.publish_date) {
-              var yearMatch = ed.publish_date.match(/\d{4}/);
-              if (yearMatch) document.getElementById("fYear").value = yearMatch[0];
-            }
-            if (ed.publishers && ed.publishers[0]) document.getElementById("fPublisher").value = ed.publishers[0];
-            if (ed.covers && ed.covers[0]) {
-              selectedCover = "https://covers.openlibrary.org/b/id/" + ed.covers[0] + "-L.jpg";
+        fetch("https://openlibrary.org/api/books?bibkeys=ISBN:" + isbn + "&format=json&jscmd=data")
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            var key = "ISBN:" + isbn;
+            if (!data[key]) { showToast("❌ ISBN no encontrado"); return; }
+            var book = data[key];
+            if (book.title) document.getElementById("fTitle").value = book.title;
+            if (book.authors && book.authors[0]) document.getElementById("fAuthor").value = book.authors[0].name;
+            if (book.publish_date) document.getElementById("fYear").value = book.publish_date.match(/\d{4}/) ? book.publish_date.match(/\d{4}/)[0] : book.publish_date;
+            if (book.number_of_pages) document.getElementById("fPages").value = book.number_of_pages;
+            if (book.publishers && book.publishers[0]) document.getElementById("fPublisher").value = book.publishers[0].name;
+            if (book.cover && book.cover.large) {
+              selectedCover = book.cover.large;
               document.getElementById("coverPreview").innerHTML = '<img src="' + selectedCover + '">';
             }
-            // Format detection
-            if (ed.physical_format) {
-              var fmt = ed.physical_format.toLowerCase();
-              if (fmt.indexOf("hardcover") !== -1 || fmt.indexOf("hard") !== -1) selectFormat("Tapa dura");
-              else if (fmt.indexOf("paperback") !== -1 || fmt.indexOf("paper") !== -1 || fmt.indexOf("soft") !== -1) selectFormat("Tapa blanda");
-              else if (fmt.indexOf("ebook") !== -1 || fmt.indexOf("digital") !== -1 || fmt.indexOf("kindle") !== -1) selectFormat("E-book");
-              else if (fmt.indexOf("audio") !== -1) selectFormat("Audiolibro");
+            // Auto-detect mood from subjects (ISBN)
+            if (book.subjects) {
+              var subStr = book.subjects.map(function(s) { return (s.name || s).toLowerCase(); }).join(" ");
+              var moodMap = [
+                {keywords: ["romance","love","passion"], mood: "😍 Romántico"},
+                {keywords: ["thriller","suspense","mystery","crime"], mood: "😱 Tenso"},
+                {keywords: ["humor","comedy","funny","comic"], mood: "😂 Divertido"},
+                {keywords: ["philosophy","psychology","self-help","think"], mood: "🤔 Reflexivo"},
+                {keywords: ["horror","dark","death","grief","sad","tragedy"], mood: "😢 Triste"},
+                {keywords: ["adventure","fantasy","epic","hero"], mood: "😊 Feliz"},
+                {keywords: ["motivation","success","business","leadership"], mood: "💪 Motivante"},
+                {keywords: ["science fiction","dystop","future","space"], mood: "🤯 Impactante"},
+                {keywords: ["meditation","mindful","calm","relax"], mood: "😴 Relajante"}
+              ];
+              for (var mi = 0; mi < moodMap.length; mi++) {
+                var found = moodMap[mi].keywords.some(function(k) { return subStr.indexOf(k) !== -1; });
+                if (found) {
+                  document.querySelectorAll(".mood-opt").forEach(function(el) { el.classList.remove("selected"); if (el.getAttribute("data-mood") === moodMap[mi].mood) el.classList.add("selected"); });
+                  break;
+                }
+              }
+              // Auto-fill genres from ISBN subjects
+              var subjectMap2 = {"fiction":"Ficción","fantasy":"Fantasía","science fiction":"Ciencia Ficción","romance":"Romance","horror":"Terror","mystery":"Misterio","history":"Historia","biography":"Biografía","self-help":"Autoayuda","poetry":"Poesía","children":"Infantil","comics":"Cómic/Manga","manga":"Cómic/Manga","thriller":"Misterio","nonfiction":"No Ficción","programming":"Técnico","technology":"Técnico"};
+              selectedGenres = [];
+              book.subjects.slice(0,10).forEach(function(s) {
+                var sl = (s.name || s).toLowerCase();
+                Object.keys(subjectMap2).forEach(function(k) {
+                  if (sl.indexOf(k) !== -1 && selectedGenres.indexOf(subjectMap2[k]) === -1) selectedGenres.push(subjectMap2[k]);
+                });
+              });
+              if (selectedGenres.length) {
+                document.getElementById("fGenre").value = selectedGenres.join(", ");
+                document.querySelectorAll(".genre-opt").forEach(function(g) {
+                  g.classList.toggle("selected", selectedGenres.indexOf(g.getAttribute("data-genre")) !== -1);
+                });
+              }
             }
-            // Saga from series
-            if (ed.series && ed.series.length) {
-              document.getElementById("fSaga").value = ed.series.join(", ");
-            }
-            
-            // Now fetch the work for author, subjects, etc.
-            var workKey = "";
-            if (ed.works && ed.works[0] && ed.works[0].key) workKey = ed.works[0].key;
-            if (workKey) {
-              fetch("https://openlibrary.org" + workKey + ".json")
-                .then(function(r) { return r.json(); })
-                .then(function(work) {
-                  // Author
-                  if (work.authors && work.authors[0]) {
-                    var authorKey = work.authors[0].author ? work.authors[0].author.key : work.authors[0].key;
-                    if (authorKey) {
-                      fetch("https://openlibrary.org" + authorKey + ".json")
-                        .then(function(r) { return r.json(); })
-                        .then(function(author) {
-                          if (author.name) document.getElementById("fAuthor").value = author.name;
-                        }).catch(function() {});
-                    }
-                  }
-                  // Subjects → genres + mood
-                  if (work.subjects) {
-                    var subjectMap = {
-                      "fiction":"Ficción","fantasy":"Fantasía","science fiction":"Ciencia Ficción",
-                      "romance":"Romance","horror":"Terror","mystery":"Misterio","thriller":"Misterio",
-                      "history":"Historia","biography":"Biografía","self-help":"Autoayuda",
-                      "poetry":"Poesía","children":"Infantil","comics":"Cómic/Manga",
-                      "manga":"Cómic/Manga","nonfiction":"No Ficción","non-fiction":"No Ficción",
-                      "programming":"Técnico","technology":"Técnico","adventure":"Aventura",
-                      "drama":"Drama","philosophy":"Filosofía","psychology":"Psicología"
-                    };
-                    selectedGenres = [];
-                    work.subjects.slice(0, 15).forEach(function(s) {
-                      var sl = s.toLowerCase();
-                      Object.keys(subjectMap).forEach(function(key) {
-                        if (sl.indexOf(key) !== -1 && selectedGenres.indexOf(subjectMap[key]) === -1) {
-                          selectedGenres.push(subjectMap[key]);
-                        }
-                      });
-                    });
-                    if (!selectedGenres.length && work.subjects.length) {
-                      var cg = work.subjects[0];
-                      addGenreChip(cg);
-                      selectedGenres.push(cg);
-                    }
-                    selectedGenres.forEach(function(g) { addGenreChip(g); });
-                    document.getElementById("fGenre").value = selectedGenres.join(", ");
-                    document.querySelectorAll(".genre-opt").forEach(function(g) {
-                      g.classList.toggle("selected", selectedGenres.indexOf(g.getAttribute("data-genre")) !== -1);
-                    });
-                    
-                    // Mood detection
-                    var subStr = work.subjects.slice(0, 20).join(" ").toLowerCase();
-                    var moodMap = [
-                      {keywords:["romance","love","passion"],mood:"😍 Romántico"},
-                      {keywords:["thriller","suspense","mystery","crime","detective"],mood:"😱 Tenso"},
-                      {keywords:["humor","comedy","funny","comic","jokes"],mood:"😂 Divertido"},
-                      {keywords:["philosophy","psychology","self-help","thinking"],mood:"🤔 Reflexivo"},
-                      {keywords:["horror","dark","death","grief","sad","tragedy","war"],mood:"😢 Triste"},
-                      {keywords:["adventure","fantasy","epic","hero","quest","dragon"],mood:"😊 Feliz"},
-                      {keywords:["motivation","success","business","leadership"],mood:"💪 Motivante"},
-                      {keywords:["science fiction","dystop","future","space"],mood:"🤯 Impactante"},
-                      {keywords:["meditation","mindful","calm","relax","yoga"],mood:"😴 Relajante"}
-                    ];
-                    var moodFound = false;
-                    for (var mi = 0; mi < moodMap.length; mi++) {
-                      var found = moodMap[mi].keywords.some(function(k) { return subStr.indexOf(k) !== -1; });
-                      if (found) {
-                        selectMoodChip(moodMap[mi].mood);
-                        moodFound = true;
-                        break;
-                      }
-                    }
-                    if (!moodFound && work.subjects.length > 0) {
-                      var newMood = "📖 " + work.subjects[0];
-                      addMoodChip(newMood);
-                      selectMoodChip(newMood);
-                    }
-                  }
-                }).catch(function() {});
+            // Auto-fill saga if series info available
+            if (book.series) {
+              var sagaText = book.series.map(function(s) { return s.name || s; }).join(", ");
+              document.getElementById("fSaga").value = sagaText;
             }
             showToast("✅ Información completada");
           })
-          .catch(function() { showToast("❌ ISBN no encontrado o sin conexión"); });
+          .catch(function() { showToast("⚠️ Sin conexión"); });
       });
 
-// === BARCODE SCANNER ===
+      // === BARCODE SCANNER ===
       var scannerStream = null;
 
       document.getElementById("btnScanIsbn").addEventListener("click", function() {
@@ -1665,7 +1476,7 @@ function markAsRead(id) {
 
       // Logout function
       function doLogout() {
-        try { storageRemove("biblio_current_user"); } catch(e) {}
+        try { localStorage.removeItem("biblio_current_user"); } catch(e) {}
         currentUser = null;
         document.getElementById("authUser").value = "";
         document.getElementById("authPass").value = "";
@@ -1673,6 +1484,15 @@ function markAsRead(id) {
       }
       window.doLogout = doLogout;
 
+      // Init
+      updateStats();
+      updateDataLists();
+      renderReading();
+
+    })();
+  </script>
+</body>
+</html
       // === INIT: Load custom genres from saved books ===
       function initCustomGenres() {
         books.forEach(function(b) {
@@ -1684,11 +1504,5 @@ function markAsRead(id) {
         });
       }
       initCustomGenres();
-      updateStats();
-      updateDataLists();
-      renderReading();
-      } // end init()
-    })();
-  </script>
-</body>
-</html>
+
+>
