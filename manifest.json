@@ -1,0 +1,18 @@
+{
+  "name": "Mi Biblioteca",
+  "short_name": "Biblioteca",
+  "description": "Catálogo personal de libros",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#fdfaf7",
+  "theme_color": "#991b1b",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%23991b1b' width='512' height='512' rx='100'/><text x='256' y='360' font-size='300' text-anchor='middle' fill='white'>📚</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
